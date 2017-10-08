@@ -224,7 +224,7 @@ public class AcceptClientMessage implements Runnable {
     					pushMsg(jsonObject);
 					}
 					
-				}else if("收获果实()".equals(info)){
+				}else if("收获果实".equals(info)){
 					//修改土地状态，种子状态，生成果实修改果实数量
 					
 					

@@ -26,7 +26,7 @@ public class SqlTest {
 	
 	public static void main(String[] args) {
 		SqlTest sqlTest = new SqlTest();
-		sqlTest.test07();
+		sqlTest.test03();
 		
 	}
 	

@@ -28,7 +28,7 @@ public class JDBCService {
 
 	public GetSeedMsgResultData getSeedMsg(Long userId) {
 		GetSeedMsgResultData getSeedMsgResultData = new GetSeedMsgResultData();
-		// 1.查询种子信息，计算价格
+		// 1
 		String sql = "select * from user_seed where userId=" + userId;
 		List<Long> seedIds = new ArrayList<Long>();
 		System.out.println("sql = " + sql);
@@ -50,7 +50,7 @@ public class JDBCService {
 		System.out.println("seedIds = " + seedIds);
 		List<Seed> seeds = new ArrayList<Seed>();
 		for (Long long1 : seedIds) {
-			// 1.查询种子信息，计算价格
+			// 1.
 			String sql1 = "select * from farm_seed where seedId=" + long1;
 			System.out.println("sql1 = " + sql1);
 			ResultSet rs1 = SqlHelper.executeQuery(sql1);
@@ -78,7 +78,63 @@ public class JDBCService {
 			}
 
 		}
-		
+		String seedname = "";
+		for (Seed seed : seeds) {    //遍历查询到的用户种子列表种子
+			if (seed.getSeedName().equals(seedname) && seed.getSeedState().equals("3")) {  //判断用户种子列表中种到土地中的种子是否含有现在要种植的种子
+				//有  则改变数量
+				// 修改用户的种子数量
+				String sql2 = "UPDATE farm_seed SET " + "seedNumber='"
+						+ (seed.getSeedNumber()+1) + "' " + "WHERE seedId=" + seed.getSeedId()
+						+ ";";
+				System.out.println("设置在当前种子的数量 = "
+						+ (seed.getSeedNumber()+1));
+				System.out.println("sql2 = " + sql2);
+				try {
+					SqlHelper.executeUpdate(sql2);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+			}else {
+				//无  则增加状态为3，种子名为传入的seedName的种子，数量为1
+				// 给用户添加新种子
+				String sql3 = "INSERT INTO farm_seed("
+						+ "seedName,seedState,seedGrowthTime,seedSellingPrice,seedImage,"
+						+ "seedNumber)" + "VALUES('" + seed.getSeedName() + "','" + 3
+						+ "'," + seed.getSeedGrowthTime() + "," + seed.getSeedSellingPrice() + ",'"
+						+ seed.getSeedImage() + "'," + 1 + ") ";
+				System.out.println("sql3====" + sql3);
+				String sql4 = "select last_insert_id()";
+				System.out.println("sql11 = " + sql4);
+
+				long lastid = 0;
+				try {
+					lastid = SqlHelper.executeUpdateGetId(sql3, sql4);
+					System.out.println("刚刚插入数据的id ---  11 = " + lastid);
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			
+			if (seed.getSeedName().equals(seedname) && seed.getSeedState().equals("2")) {  //判断用户种子状态是2，名称时传入的seedname的种子时改变其数量
+				//有  则改变数量
+				// 修改用户的种子数量
+				String sql2 = "UPDATE farm_seed SET " + "seedNumber='"
+						+ (seed.getSeedNumber()-1) + "' " + "WHERE seedId=" + seed.getSeedId()
+						+ ";";
+				System.out.println("设置在当前种子的数量 = "
+						+ (seed.getSeedNumber()+1));
+				System.out.println("sql2 = " + sql2);
+				try {
+					SqlHelper.executeUpdate(sql2);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+			}
+			
+		}
 		getSeedMsgResultData.setSeeds(seeds);
 		return getSeedMsgResultData;
 	}
@@ -132,7 +188,7 @@ public class JDBCService {
 		BuySeedResultData buySeedResultData = new BuySeedResultData();
 
 		boolean b = true;
-		// 1.查询种子信息，计算价格
+		// 1.查询种子信息，计算购买所需金币
 		String sql1 = "select * from farm_seed where seedId=" + seedId;
 		System.out.println("sql1 = " + sql1);
 		ResultSet rs1 = SqlHelper.executeQuery(sql1);
@@ -142,15 +198,12 @@ public class JDBCService {
 		int seedSellingPrice = 0;
 		String seedImage = "";
 		try {
-			// 查询数据库,获取上述uid对应的数据
-
 			while (rs1.next()) {
 				price1 = (int) (Integer.parseInt(seedNumber) * (rs1.getInt(5)));
 				seedName = rs1.getString(2);
 				seedGrowthTime = rs1.getLong(4);
 				seedSellingPrice = rs1.getInt(5);
 				seedImage = rs1.getString(6);
-
 				System.out.println("购买种子所需金币    price1 = " + price1);
 			}
 		} catch (SQLException e) {
@@ -160,7 +213,7 @@ public class JDBCService {
 			SqlHelper.close(rs1, SqlHelper.getPs(), SqlHelper.getConnection());
 		}
 
-		// 2.查询用户金币信息，金币是否购买种子，如不够直接返回提示用户
+		// 2.查询用户金币信息，
 		String sql2 = "select * from farm_user where userId=" + userId;
 		System.out.println("sql2 = " + sql2);
 		ResultSet rs2 = SqlHelper.executeQuery(sql2);
@@ -178,18 +231,16 @@ public class JDBCService {
 		} finally {
 			SqlHelper.close(rs2, SqlHelper.getPs(), SqlHelper.getConnection());
 		}
-
+		// 3. 判断用户剩余金币是否够买种子，如不够直接返回提示用户
 		if (price2 > price1) {
 			// 3.金币够，则修改用户的种子信息和金币信息
-			// 3-1.查询种子表，用户是否有seedId种子，有则获取其数量，并进行增加，没有则添加，
+			// 3-1.查询种子表，用户是否有seedId种子
 			String sql3 = "select * from user_seed where userId=" + userId
 					+ " and seedId=" + seedId;
 			System.out.println("sql3 = " + sql3);
 			b = false;
 			ResultSet rs3 = SqlHelper.executeQuery(sql3);
 			try {
-				// 查询数据库,获取上述uid对应的数据
-
 				while (rs3.next()) {
 					b = true;
 					rs3.getInt(3);
@@ -205,8 +256,9 @@ public class JDBCService {
 						SqlHelper.getConnection());
 			}
 
-			// 用户剩余金币够买种子，购买种子实现，改变种子数量和金币数量
-			if (b) {
+			// 3-2.判断用户是否已有seedId的种子
+			if (b) {   // 用户有seedId的种子，
+				// 修改用户的金币数量
 				String sql4 = "UPDATE farm_user SET " + "userGold='"
 						+ (price2 - price1) + "' " + "WHERE userId='" + userId
 						+ "';";
@@ -220,19 +272,15 @@ public class JDBCService {
 				}
 
 				// 改变用户的种子数量
-
-				// 3-1.查询种子表，用户是否有seedId种子，有则获取其数量，并进行增加，没有则添加，
-				String sql10 = "select * from user_seed where userId=" + userId
+				//     查询种子表，用户是否有seedId种子，有则获取其数量，并进行增加，没有则添加，
+				String sql10 = "select * from farm_seed where userId=" + userId
 						+ " and seedId=" + seedId;
 				System.out.println("sql10 = " + sql10);
 				Long seedid = (long) 0;
 				ResultSet rs10 = SqlHelper.executeQuery(sql10);
 
 				try {
-					// 查询数据库,获取上述uid对应的数据
-
 					while (rs10.next()) {
-
 						seedid = rs10.getLong(3);
 						System.out.println("查询该用户是否有该种子，rs3.getInt(2)   10 = "
 								+ rs10.getInt(3));
@@ -245,7 +293,7 @@ public class JDBCService {
 							SqlHelper.getConnection());
 				}
 
-				String sql5 = "UPDATE farm_seed SET " + "seedNumber='"
+				String sql5 = "UPDATE user_seed SET " + "seedNumber='"
 						+ seedNumber + "' " + "WHERE seedId='" + seedid + "';";
 				System.out.println("sql5 = " + sql5);
 				try {
