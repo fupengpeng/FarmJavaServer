@@ -4,21 +4,20 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-
 /**
  * 
  * @Title: Seed
- * @Description: 给此类一个描述
+ * @Description: 种子商品的实体
  * @Company: 济宁九点连线信息技术有限公司
- * @ProjectName: FarmWebServer
+ * @ProjectName: Farm
  * @author fupengpeng
- * @date 2017年9月27日 下午3:01:37
+ * @date 2017年9月26日 上午10:15:44
  *
  */
 public class Seed {
-	
+	//种子id， 主键
 	private Long seedId;
-	
+	//种子名称
 	private String seedName;
 	/**
 	 * 种子状态
@@ -27,21 +26,33 @@ public class Seed {
 	 *     3：种植在土地
 	 */
 	private String seedState;
-	//种子生长时长，单位秒
+	//种子生长时长
 	private Long seedGrowthTime;
-	//种子售出价格，单位：金币
-	private int seedSellingPrice;
+	//种子购买价格
+	private Long seedBuyPrice;
+	//种子出售价格
+	private Long seedSellingPrice;
+	//种子长成获取经验
+	private Long seedExperience;
+	//种子产量
+	private Long seedYield;
+	//种子长成果实售价
+	private Long seedFruitSellingPrice;
+	//种子类型  共生产几季
+	private Long seedType;
+	//种子图片
 	private String seedImage;
-	/**
-	 * 种子数量
-	 *     在商店展示时，为0
-	 *     在土地中种植时，为0
-	 */
+	// 种子数量，如果在商店，则为0
 	private int seedNumber;
+	private Land seedLand ;
+	private User seedUser ;
 	
-	//种子种植在那个土地上。当种子状态为3时，才有值，否则为空
-	private Land seedLand;
-	private Set<User> seedUsers = new HashSet<User>();
+	public Land getSeedLand() {
+		return seedLand;
+	}
+	public void setSeedLand(Land seedLand) {
+		this.seedLand = seedLand;
+	}
 	public Long getSeedId() {
 		return seedId;
 	}
@@ -66,11 +77,41 @@ public class Seed {
 	public void setSeedGrowthTime(Long seedGrowthTime) {
 		this.seedGrowthTime = seedGrowthTime;
 	}
-	public int getSeedSellingPrice() {
+	public Long getSeedBuyPrice() {
+		return seedBuyPrice;
+	}
+	public void setSeedBuyPrice(Long seedBuyPrice) {
+		this.seedBuyPrice = seedBuyPrice;
+	}
+	public Long getSeedSellingPrice() {
 		return seedSellingPrice;
 	}
-	public void setSeedSellingPrice(int seedSellingPrice) {
+	public void setSeedSellingPrice(Long seedSellingPrice) {
 		this.seedSellingPrice = seedSellingPrice;
+	}
+	public Long getSeedExperience() {
+		return seedExperience;
+	}
+	public void setSeedExperience(Long seedExperience) {
+		this.seedExperience = seedExperience;
+	}
+	public Long getSeedYield() {
+		return seedYield;
+	}
+	public void setSeedYield(Long seedYield) {
+		this.seedYield = seedYield;
+	}
+	public Long getSeedFruitSellingPrice() {
+		return seedFruitSellingPrice;
+	}
+	public void setSeedFruitSellingPrice(Long seedFruitSellingPrice) {
+		this.seedFruitSellingPrice = seedFruitSellingPrice;
+	}
+	public Long getSeedType() {
+		return seedType;
+	}
+	public void setSeedType(Long seedType) {
+		this.seedType = seedType;
 	}
 	public String getSeedImage() {
 		return seedImage;
@@ -84,20 +125,14 @@ public class Seed {
 	public void setSeedNumber(int seedNumber) {
 		this.seedNumber = seedNumber;
 	}
-	public Land getSeedLand() {
-		return seedLand;
+	public User getSeedUser() {
+		return seedUser;
 	}
-	public void setSeedLand(Land seedLand) {
-		this.seedLand = seedLand;
+	public void setSeedUser(User seedUser) {
+		this.seedUser = seedUser;
 	}
-	public Set<User> getSeedUsers() {
-		return seedUsers;
-	}
-	public void setSeedUsers(Set<User> seedUsers) {
-		this.seedUsers = seedUsers;
-	}
-
 	
+
 	
 	
 

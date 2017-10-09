@@ -1,19 +1,23 @@
 package com.jiudianlianxian.domain;
 
+import java.util.HashSet;
+import java.util.Set;
+
 
 /**
  * 
  * @Title: Land
  * @Description: 给此类一个描述
  * @Company: 济宁九点连线信息技术有限公司
- * @ProjectName: FarmWebServer
+ * @ProjectName: Farm
  * @author fupengpeng
- * @date 2017年9月27日 下午2:59:58
+ * @date 2017年9月26日 上午10:36:51
  *
  */
 public class Land {
-	
+	//土地id，主键
 	private Long landId;
+	//土地名称
 	private String landName; 
 	/**
 	 * 土地状态
@@ -23,14 +27,9 @@ public class Land {
 	 */
 	private String landState;
 	
-	/**
-	 * 种子对象
-	 *     当土地状态为1时，才有种子对象，否则为空
-	 */
-	private Seed landSeed;
-	private User landUser;
-	
-	
+	private User landUser ;
+	//土地种植时，地里种植的种子,用set集合，实际只有一个
+	private Set<Seed> landSeeds = new HashSet<Seed>() ;
 	public Long getLandId() {
 		return landId;
 	}
@@ -49,19 +48,19 @@ public class Land {
 	public void setLandState(String landState) {
 		this.landState = landState;
 	}
-	public Seed getLandSeed() {
-		return landSeed;
-	}
-	public void setLandSeed(Seed landSeed) {
-		this.landSeed = landSeed;
-	}
 	public User getLandUser() {
 		return landUser;
 	}
 	public void setLandUser(User landUser) {
 		this.landUser = landUser;
 	}
-
+	public Set<Seed> getLandSeeds() {
+		return landSeeds;
+	}
+	public void setLandSeeds(Set<Seed> landSeeds) {
+		this.landSeeds = landSeeds;
+	}
+	
 	
 
 	

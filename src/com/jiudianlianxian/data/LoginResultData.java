@@ -10,6 +10,7 @@ public class LoginResultData {
 	
 	private User user = new User();
 	private List<Land> lands = new ArrayList<Land>();
+	
 	public User getUser() {
 		return user;
 	}

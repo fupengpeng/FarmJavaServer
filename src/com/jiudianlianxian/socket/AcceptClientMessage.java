@@ -126,35 +126,45 @@ public class AcceptClientMessage implements Runnable {
         		if ("login".equals(info)) {    //判断是什么请求
         			
         			
-        			if (jdbcService.login()) {
+        			if (jdbcService.login()) {   //登录是否成功
+        				
         				Long userId = (long) 0;
 						LoginResultData loginResponseData = jdbcService.loginResult(userId);
 						LoginResult loginResponse = new LoginResult();
+						
 						loginResponse.setInfo(info);
+						loginResponse.setCode("1");
 						loginResponse.setLoginResponseData(loginResponseData);
 					    jsonObject = com.alibaba.fastjson.JSONObject.toJSONString(loginResponse);
 					    System.out.println("jsonObject  = " + jsonObject);
     					pushMsg(jsonObject);
+    					
 					}else {
+						
 						LoginResult loginResponse = new LoginResult();
 						loginResponse.setInfo(info);
+						loginResponse.setCode("0");
 						jsonObject = com.alibaba.fastjson.JSONObject.toJSONString(loginResponse);
 					    System.out.println("jsonObject  = " + jsonObject);
     					pushMsg(jsonObject);
 					}
         			
+        			
+        			
 				}else if("seedmsg".equals(info)){  //获取所有种子信息
 					//查询数据库种子列表所有数据
 					SeedMsgAllResultData seedMsgAllResultData = jdbcService.getSeedMsgAll();
 					SeedMsgAllResult seedMsgAllResult = new SeedMsgAllResult();
+					seedMsgAllResult.setInfo(info);
 					if (seedMsgAllResultData != null) {
-						seedMsgAllResult.setInfo(info);
+						seedMsgAllResult.setCode("1");
 						seedMsgAllResult.setSeedMsgAllResultData(seedMsgAllResultData);
 						jsonObject = com.alibaba.fastjson.JSONObject.toJSONString(seedMsgAllResult);
 					    System.out.println("jsonObject  = " + jsonObject);
     					pushMsg(jsonObject);
 						
 					}else {
+						seedMsgAllResult.setCode("0");
 						jsonObject = com.alibaba.fastjson.JSONObject.toJSONString(seedMsgAllResult);
 					    System.out.println("jsonObject  = " + jsonObject);
     					pushMsg(jsonObject);

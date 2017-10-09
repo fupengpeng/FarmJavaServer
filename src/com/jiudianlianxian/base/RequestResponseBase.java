@@ -17,6 +17,21 @@ public class RequestResponseBase {
 	 * 请求响应信息头
 	 */
 	private String info;
+	
+	/**
+	 * 请求是否成功
+	 */
+	private String code;
+	
+	
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
 
 	public String getInfo() {
 		return info;
