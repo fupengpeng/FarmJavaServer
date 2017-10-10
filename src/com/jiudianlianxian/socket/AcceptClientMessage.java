@@ -1,10 +1,13 @@
 package com.jiudianlianxian.socket;
 
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +15,9 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+
+
 
 
 
@@ -69,6 +75,8 @@ public class AcceptClientMessage implements Runnable {
     private String userName; // 成员名称  
     
     private JDBCService jdbcService  = new JDBCService();
+    
+    String read = null;
 
     /** 
      * 构造函数<br> 
@@ -83,14 +91,43 @@ public class AcceptClientMessage implements Runnable {
         this.threadList = threadList;
         this.msgQueue = msgQueue;
         this.userName = String.valueOf(socket.getPort());  
-        try {  
-            this.buff = new BufferedReader(new InputStreamReader(  
-                    socket.getInputStream(), "UTF-8"));  
-            this.writer = new OutputStreamWriter(socket.getOutputStream(),  
-                    "UTF-8");  
-        } catch (Exception e) {  
-            e.printStackTrace();  
-        }  
+//        try {  
+//            this.buff = new BufferedReader(new InputStreamReader(  
+//                    socket.getInputStream(), "UTF-8"));  
+//            this.writer = new OutputStreamWriter(socket.getOutputStream(),  
+//                    "UTF-8");  
+//        } catch (Exception e) {  
+//            e.printStackTrace();  
+//        }  
+        
+        try {
+            
+                // 获取客户端发来的数据
+                InputStream is = socket.getInputStream();
+                int len = is.available() + 1;
+                System.out.println("len == " + len);
+                byte[] buff = new byte[len];
+
+                try{
+                	  is.read(buff);
+                	}catch(SocketException e){
+                	  System.out.println("有客户断开连接~");
+                	}
+                
+                // 输出接收到的数据
+                read = new String(buff);
+                System.out.println("收到数据：" + read);
+
+                // 给玩家发送数据
+                String data = "恭喜你，连接成功啦~~";
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+        
+        
+        
         userList.add(this.userName);  
         threadList.add(this);  
         pushMsg("【" + this.userName + "已连接成功】");  
@@ -102,22 +139,26 @@ public class AcceptClientMessage implements Runnable {
     public void run() {  
         try {  
             while (true) {  
-                String msg = buff.readLine(); 
+//                String msg = buff.readLine(); 
+            	String msg = read;
                 String aaa = "{'info':'login','data':{'username':'zhangsan','sex':'nan','age':'55'}}";
                 String jsonObject = "";
+                System.out.println("msg = " + msg);
                 
-                JSONObject jsonObject1;
+                JSONObject jsonObject1 = null;
                 String info = null ;
                 JSONObject data = null;
         		try {
         			jsonObject1 = new JSONObject(msg);
         			info = jsonObject1.getString("info");
-        			data = jsonObject1.getJSONObject("data");
-        			System.out.println("data  = " + data.toString());
-        			System.out.println("username = " + data.getString("username"));
-        			System.out.println("sex = " + data.getString("sex"));
-        			System.out.println("age = " + data.getString("age"));
-        			
+        			String code = jsonObject1.getString("data");
+        			System.out.println("info = " + info  +"    code = "  + code);
+//        			data = jsonObject1.getJSONObject("data");
+//        			System.out.println("data  = " + data.toString());
+//        			System.out.println("username = " + data.getString("username"));
+//        			System.out.println("sex = " + data.getString("sex"));
+//        			System.out.println("age = " + data.getString("age"));
+//        			
         		} catch (JSONException e) {
         			// 
         			e.printStackTrace();
@@ -125,10 +166,13 @@ public class AcceptClientMessage implements Runnable {
         		
         		if ("login".equals(info)) {    //判断是什么请求
         			
+        			String code = jsonObject1.getString("data");
+        			System.out.println("code = " + code);
         			
-        			if (jdbcService.login()) {   //登录是否成功
+        			
+        			if (jdbcService.login(code)) {   //登录是否成功
         				
-        				Long userId = (long) 0;
+        				Long userId = jdbcService.WeiXinlogin(code);
 						LoginResultData loginResponseData = jdbcService.loginResult(userId);
 						LoginResult loginResponse = new LoginResult();
 						

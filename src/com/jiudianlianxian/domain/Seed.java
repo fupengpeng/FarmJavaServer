@@ -44,14 +44,16 @@ public class Seed {
 	private String seedImage;
 	// 种子数量，如果在商店，则为0
 	private int seedNumber;
-	private Land seedLand ;
 	private User seedUser ;
+	private Set<Land> seedLands = new HashSet<Land>();
 	
-	public Land getSeedLand() {
-		return seedLand;
+	
+	
+	public Set<Land> getSeedLands() {
+		return seedLands;
 	}
-	public void setSeedLand(Land seedLand) {
-		this.seedLand = seedLand;
+	public void setSeedLands(Set<Land> seedLands) {
+		this.seedLands = seedLands;
 	}
 	public Long getSeedId() {
 		return seedId;

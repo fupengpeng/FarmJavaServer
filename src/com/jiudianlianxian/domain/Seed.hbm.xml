@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.jiudianlianxian.domain.Seed" table="farm_seed">
+		<id name="seedId" column="seedId">
+			<generator class="native"></generator>
+		</id>
+		<property name="seedName" column="seedName"></property>
+		<property name="seedState" column="seedState"></property>
+		<property name="seedGrowthTime" column="seedGrowthTime"></property>
+		<property name="seedBuyPrice" column="seedBuyPrice"></property>
+		<property name="seedSellingPrice" column="seedSellingPrice"></property>
+		<property name="seedExperience" column="seedExperience"></property>
+		<property name="seedYield" column="seedYield"></property>
+		<property name="seedFruitSellingPrice" column="seedFruitSellingPrice"></property>
+        <property name="seedType" column="seedType"></property>
+		<property name="seedImage" column="seedImage"></property>
+		<property name="seedNumber" column="seedNumber"></property>
+        
+		<many-to-one name="seedUser" class="com.jiudianlianxian.domain.User"
+			column="userId">
+		</many-to-one>
+		<!-- <many-to-one name="seedLand" class="com.jiudianlianxian.domain.Land"
+			column="landId">
+		</many-to-one> -->
+		
+		<set name="seedLands" table="land_seed" cascade="save-update,delete">
+		    <!-- key标签里面的配置 -->
+		    <!-- column属性：配置当前映射文件在第三张表的外键名称 -->
+		    <key column="SeedId"></key>
+		    <!--  -->
+		    <!-- class属性：角色实体类全路径 -->
+		    <!-- column属性：角色在第三张表的外键名称 -->
+		    <many-to-many class="com.jiudianlianxian.domain.Land" column="landId"></many-to-many>
+		</set>
+
+
+	</class>
+</hibernate-mapping>

@@ -1,8 +1,17 @@
 package com.jiudiannnnnnn;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.json.Test;
 
 import com.jiudianlianxian.bean.BuySeedResult;
@@ -26,10 +35,69 @@ public class SqlTest {
 	
 	public static void main(String[] args) {
 		SqlTest sqlTest = new SqlTest();
-		sqlTest.test03();
+		sqlTest.test08();
+		
 		
 	}
-	
+	public void test09(){
+		String uri = "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=APPID&grant_type=refresh_token&refresh_token=REFRESH_TOKEN";
+		StringBuilder builder = null;
+		String json_access_token = null;
+		try {
+			URL url = new URL(uri);//如果有参数，在网址中携带参数
+			URLConnection conn = url.openConnection();
+			InputStream is = conn.getInputStream();
+			InputStreamReader isr = new InputStreamReader(is);
+			BufferedReader br = new BufferedReader(isr);
+			
+			String line;
+			builder = new StringBuilder();
+			while((line=br.readLine())!=null){
+			      builder.append(line);
+			}
+			br.close();
+			isr.close();
+			is.close();
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        json_access_token = builder.toString();
+        System.out.println(builder.toString());
+        
+        
+
+        String aaa = "{'info':'login','data':{'username':'zhangsan','sex':'nan','age':'55'}}";
+        String jsonObject = "";
+        
+        JSONObject jsonObject1;
+        String info = null ;
+        JSONObject data = null;
+		try {
+			jsonObject1 = new JSONObject(json_access_token);
+			info = jsonObject1.getString("info");
+			data = jsonObject1.getJSONObject("data");
+			System.out.println("data  = " + data.toString());
+			System.out.println("username = " + data.getString("username"));
+			System.out.println("sex = " + data.getString("sex"));
+			System.out.println("age = " + data.getString("age"));
+			
+		} catch (JSONException e) {
+			// 
+			e.printStackTrace();
+		}
+        
+        
+        
+	}
+	public void test08(){
+		String code = "";
+		boolean b = jdbcService.login(code);
+		System.out.println("bh = " + b);
+	}
 	public void test07(){
 		Long userId = (long) 1;
 		GetSeedMsgResultData getSeedMsgResultData = jdbcService.getSeedMsg(userId);
@@ -127,7 +195,8 @@ public class SqlTest {
 	}
 	public  void test05(){
 
-		if (jdbcService.login()) {
+		String code = "" ;
+		if (jdbcService.login(code)) {
 			Long userId = (long) 1;
 			LoginResultData loginResponseData = jdbcService.loginResult(userId);
 			LoginResult loginResponse = new LoginResult();

@@ -17,7 +17,7 @@ import com.alibaba.fastjson.JSON;
 
 public class FarmJavaServer extends ServerSocket {  
 	  
-    private static final int SERVER_PORT = 8945; // 服务端端口  
+    private static final int SERVER_PORT = 8944; // 服务端端口  
 
     private static List<AcceptClientMessage> threadList = new ArrayList<AcceptClientMessage>(); // 服务器已启用线程集合  
     private static BlockingQueue<String> msgQueue = new ArrayBlockingQueue<String>(  
@@ -35,7 +35,8 @@ public class FarmJavaServer extends ServerSocket {
     public void load() throws Exception {  
     	//向用户发送消息
         new Thread(new SendClientMessage(threadList, msgQueue)).start(); // 开启向客户端发送消息的线程  
-  
+ 
+        System.out.println("load-----");
         while (true) {  
             // server尝试接收其他Socket的连接请求，server的accept方法是阻塞式的  
             Socket socket = this.accept();  
@@ -58,7 +59,9 @@ public class FarmJavaServer extends ServerSocket {
     public static void main(String[] args) {  
         try {  
         	FarmJavaServer server = new FarmJavaServer(); // 启动服务端  
+        	System.out.println("FarmJavaServer");
             server.load();  
+            
             
         } catch (Exception e) {  
             e.printStackTrace();  

@@ -30,7 +30,9 @@ public class SendClientMessage implements Runnable{
         while (true) {  
             String msg = null;  
             try {  
-                msg = msgQueue.take();  
+                msg = msgQueue.take(); 
+                
+                System.out.println("发送消息线程开启");
             } catch (InterruptedException e) {  
                 e.printStackTrace();  
             }  
