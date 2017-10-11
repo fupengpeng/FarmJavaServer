@@ -9,6 +9,12 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,6 +32,8 @@ import com.jiudianlianxian.data.LoginResultData;
 import com.jiudianlianxian.data.SeedMsgAllResultData;
 import com.jiudianlianxian.service.JDBCService;
 import com.jiudianlianxian.util.SqlHelper;
+import com.jiudianlianxian.utils.HttpCallBackListener;
+import com.jiudianlianxian.utils.HttpUtil;
 
 public class SqlTest {
 	  JDBCService jdbcService  = new JDBCService();
@@ -35,9 +43,129 @@ public class SqlTest {
 	
 	public static void main(String[] args) {
 		SqlTest sqlTest = new SqlTest();
-		sqlTest.test08();
+		sqlTest.test12();
+//		String url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code";
+//		String aaa = sqlTest.sendGet(url);
+//		System.out.println("aaa = " + aaa);
+		
+	}
+	
+	
+	public void test12(){
+		String url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code";
+		HttpUtil.requestData(url, new HttpCallBackListener() {
+            @Override
+            public void onFinish(String respose) {
+                //处理请求
+            	System.out.println("qiuchengong ");
+            	System.out.println("ssssssssss" + HttpUtil.getJson());
+            	
+            }
+
+            @Override
+            public void onError(Exception e) {
+                //处理异常
+            	System.out.println("siqnsa;djfal;fskdjlaksdfj;alfskjd ");
+            	System.out.println("sadfasdfa"+ HttpUtil.getJson());
+            }
+        });
+		
+	}
+	
+    /**
+
+     * 发送get请求
+
+     * @param url    路径
+
+     * @return
+
+     */
+
+    /**
+     * 向指定URL发送GET方法的请求
+     * 
+     * @param url
+     *            发送请求的URL
+     * @param param
+     *            请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
+     * @return URL 所代表远程资源的响应结果
+     */
+    public static String sendGet(String url) {
+        String result = "";
+        BufferedReader in = null;
+        try {
+            URL realUrl = new URL(url);
+            // 打开和URL之间的连接
+            URLConnection connection = realUrl.openConnection();
+//            // 设置通用的请求属性
+//            connection.setRequestProperty("accept", "*/*");
+//            connection.setRequestProperty("connection", "Keep-Alive");
+//            connection.setRequestProperty("user-agent",
+//                    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+            // 建立实际的连接
+//            connection.connect();
+            // 获取所有响应头字段
+//            Map<String, List<String>> map = connection.getHeaderFields();
+//            // 遍历所有的响应头字段
+//            for (String key : map.keySet()) {
+//                System.out.println(key + "--->" + map.get(key));
+//            }
+            // 定义 BufferedReader输入流来读取URL的响应
+            in = new BufferedReader(new InputStreamReader(
+                    connection.getInputStream()));
+            String line;
+            while ((line = in.readLine()) != null) {
+                result += line;
+                
+            }
+            
+        } catch (Exception e) {
+            System.out.println("发送GET请求出现异常！" + e);
+            e.printStackTrace();
+        }
+        // 使用finally块来关闭输入流
+        finally {
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
+        }
+        return result;
+    }
+	public void test11(){
 		
 		
+		
+		String code = "071GzoZb1Npuls0hWkXb11hIZb1GzoZ5";
+		jdbcService.WeiXinlogin(code);
+	}
+	public void test10(){
+		Date date = new Date();
+		Timer timer = new Timer();
+		TimerTask timerTask = new TimerTask() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				
+				System.out.println("ganshenmene????");
+			}
+		};
+		timer.schedule(timerTask, date);
+		date.getTime();
+		Timestamp timestamp = new Timestamp(date.getTime());
+		
+		// timestamp = 2017-10-11 14:30:03.809
+		//  date = 1507703403809
+//		timestamp = 2017-10-11 14:31:24.111
+//		date = 1507703484111
+
+		System.out.println( " timestamp = " + timestamp );
+		System.out.println("date = " + date.getTime());
 	}
 	public void test09(){
 		String uri = "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=APPID&grant_type=refresh_token&refresh_token=REFRESH_TOKEN";

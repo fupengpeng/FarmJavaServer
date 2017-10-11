@@ -36,8 +36,9 @@ public class SendClientMessage implements Runnable{
             } catch (InterruptedException e) {  
                 e.printStackTrace();  
             }  
-            if (msg != null) {  
+            if (msg != null && msg != "") {  
                 for (AcceptClientMessage thread : threadList) {  
+                	System.out.println("msg = " + msg);
                     thread.sendMsg(msg);  
                 }  
             }  

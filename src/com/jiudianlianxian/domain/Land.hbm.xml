@@ -11,21 +11,24 @@
 		<property name="landName" column="landName"></property>
 		<property name="landState" column="landState"></property>
 		
-		<!-- <set name="landSeeds" cascade="save-update,delete">
-			<key column="seedId"></key>
-			<one-to-many class="com.jiudianlianxian.domain.Seed" />
-		</set> -->
+		<!-- <many-to-one name="landSeed" class="com.jiudianlianxian.domain.Seed"
+			column="seedLandId">
+		</many-to-one> -->
 		<many-to-one name="landUser" class="com.jiudianlianxian.domain.User"
 			column="userId">
 		</many-to-one>
 		
-		<set name="landSeeds" table="land_seed">
-			<!-- key标签里面的配置 -->
-			<!-- column属性：配置当前映射文件在第三张表的外键名称 -->
-			<key column="landId"></key>
-			<!-- class属性：用户实体类全路径 -->
-			<!-- column属性：用户在第三张表的外键名称 -->
-			<many-to-many class="com.jiudianlianxian.domain.Seed" column="SeedId"></many-to-many>
+		
+		<!-- name属性：角色set集合名 -->
+		<!-- table属性：第三张表名 -->
+		<set name="landSeeds" table="land_seed" cascade="save-update,delete">
+		    <!-- key标签里面的配置 -->
+		    <!-- column属性：配置当前映射文件在第三张表的外键名称 -->
+		    <key column="landId"></key>
+		    <!--  -->
+		    <!-- class属性：角色实体类全路径 -->
+		    <!-- column属性：角色在第三张表的外键名称 -->
+		    <many-to-many class="com.jiudianlianxian.domain.Seed" column="seedId"></many-to-many>
 		</set>
 		
 	</class>

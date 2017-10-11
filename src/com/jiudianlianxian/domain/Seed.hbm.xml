@@ -23,14 +23,20 @@
 		<many-to-one name="seedUser" class="com.jiudianlianxian.domain.User"
 			column="userId">
 		</many-to-one>
-		<!-- <many-to-one name="seedLand" class="com.jiudianlianxian.domain.Land"
-			column="landId">
-		</many-to-one> -->
 		
+		
+		<!-- <set name="seedLands" >
+			
+			<key column="seedLandId"></key>
+			<one-to-many class="com.jiudianlianxian.domain.Land" />
+		</set> -->
+		
+		<!-- name属性：角色set集合名 -->
+		<!-- table属性：第三张表名 -->
 		<set name="seedLands" table="land_seed" cascade="save-update,delete">
 		    <!-- key标签里面的配置 -->
 		    <!-- column属性：配置当前映射文件在第三张表的外键名称 -->
-		    <key column="SeedId"></key>
+		    <key column="seedId"></key>
 		    <!--  -->
 		    <!-- class属性：角色实体类全路径 -->
 		    <!-- column属性：角色在第三张表的外键名称 -->

@@ -90,7 +90,9 @@ public class AcceptClientMessage implements Runnable {
         this.socket = socket;  
         this.threadList = threadList;
         this.msgQueue = msgQueue;
-        this.userName = String.valueOf(socket.getPort());  
+        this.userName = String.valueOf(socket.getPort()); 
+        //msg = {info:login,data:011Wmx7r0Kf8Qq1ORS6r0eqg7r0Wmx7n}
+        
 //        try {  
 //            this.buff = new BufferedReader(new InputStreamReader(  
 //                    socket.getInputStream(), "UTF-8"));  
@@ -141,9 +143,8 @@ public class AcceptClientMessage implements Runnable {
             while (true) {  
 //                String msg = buff.readLine(); 
             	String msg = read;
-                String aaa = "{'info':'login','data':{'username':'zhangsan','sex':'nan','age':'55'}}";
                 String jsonObject = "";
-                System.out.println("msg = " + msg);
+                System.out.println("接收到用户发送的msg = " + msg);
                 
                 JSONObject jsonObject1 = null;
                 String info = null ;
@@ -152,7 +153,7 @@ public class AcceptClientMessage implements Runnable {
         			jsonObject1 = new JSONObject(msg);
         			info = jsonObject1.getString("info");
         			String code = jsonObject1.getString("data");
-        			System.out.println("info = " + info  +"    code = "  + code);
+        			System.out.println("info = " + info  +"    data = "  + code);
 //        			data = jsonObject1.getJSONObject("data");
 //        			System.out.println("data  = " + data.toString());
 //        			System.out.println("username = " + data.getString("username"));
@@ -167,7 +168,7 @@ public class AcceptClientMessage implements Runnable {
         		if ("login".equals(info)) {    //判断是什么请求
         			
         			String code = jsonObject1.getString("data");
-        			System.out.println("code = " + code);
+        			System.out.println("data = " + code);
         			
         			
         			if (jdbcService.login(code)) {   //登录是否成功
@@ -333,6 +334,7 @@ public class AcceptClientMessage implements Runnable {
      */  
     public void sendMsg(String msg) {  
         try {  
+        	System.out.println("msg = sendMsg" + msg);
             writer.write(msg);  
             writer.write("\015\012");  
             writer.flush();  

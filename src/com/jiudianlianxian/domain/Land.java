@@ -29,7 +29,10 @@ public class Land {
 	
 	private User landUser ;
 	//土地种植时，地里种植的种子,用set集合，实际只有一个
-	private Set<Seed> landSeeds = new HashSet<Seed>() ;
+//	private Seed landSeed ;
+	private Set<Seed> landSeeds = new HashSet<Seed>();
+	
+	
 	public Long getLandId() {
 		return landId;
 	}
@@ -54,12 +57,20 @@ public class Land {
 	public void setLandUser(User landUser) {
 		this.landUser = landUser;
 	}
+//	public Seed getLandSeed() {
+//		return landSeed;
+//	}
+//	public void setLandSeed(Seed landSeed) {
+//		this.landSeed = landSeed;
+//	}
 	public Set<Seed> getLandSeeds() {
 		return landSeeds;
 	}
 	public void setLandSeeds(Set<Seed> landSeeds) {
 		this.landSeeds = landSeeds;
 	}
+	
+	
 	
 	
 
