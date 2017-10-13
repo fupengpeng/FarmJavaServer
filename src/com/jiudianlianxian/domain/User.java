@@ -25,6 +25,8 @@ public class User {
 	private Long userGold;
 	//用户经验
 	private Long userExperience;
+	//openid  微信用户唯一标识
+	private String openid;
 	//用户种子集合
 	private Set<Seed> userSeeds = new HashSet<Seed>();
 	//用户土地集合
@@ -79,6 +81,12 @@ public class User {
 	}
 	public void setUserFruits(Set<Fruit> userFruits) {
 		this.userFruits = userFruits;
+	}
+	public String getOpenid() {
+		return openid;
+	}
+	public void setOpenid(String openid) {
+		this.openid = openid;
 	}
 	
 	

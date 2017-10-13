@@ -10,6 +10,8 @@ import java.net.URLConnection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -21,16 +23,24 @@ import org.json.JSONObject;
 import org.json.Test;
 
 import com.jiudianlianxian.bean.BuySeedResult;
+import com.jiudianlianxian.bean.FruitRipeResult;
 import com.jiudianlianxian.bean.GetLandMsgResult;
 import com.jiudianlianxian.bean.GetSeedMsgResult;
 import com.jiudianlianxian.bean.LoginResult;
+import com.jiudianlianxian.bean.PlantResult;
 import com.jiudianlianxian.bean.SeedMsgAllResult;
 import com.jiudianlianxian.data.BuySeedResultData;
+import com.jiudianlianxian.data.FruitRipeResultData;
 import com.jiudianlianxian.data.GetLandMsgResultData;
 import com.jiudianlianxian.data.GetSeedMsgResultData;
 import com.jiudianlianxian.data.LoginResultData;
+import com.jiudianlianxian.data.PlantResultData;
 import com.jiudianlianxian.data.SeedMsgAllResultData;
+import com.jiudianlianxian.domain.RipeMessage;
+import com.jiudianlianxian.domain.Seed;
+import com.jiudianlianxian.domain.User;
 import com.jiudianlianxian.service.JDBCService;
+import com.jiudianlianxian.util.JDBCUtil;
 import com.jiudianlianxian.util.SqlHelper;
 import com.jiudianlianxian.utils.HttpCallBackListener;
 import com.jiudianlianxian.utils.HttpUtil;
@@ -43,13 +53,65 @@ public class SqlTest {
 	
 	public static void main(String[] args) {
 		SqlTest sqlTest = new SqlTest();
-		sqlTest.test12();
+		
 //		String url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code";
 //		String aaa = sqlTest.sendGet(url);
 //		System.out.println("aaa = " + aaa);
 		
 	}
 	
+	
+	public void test13(){
+		 SimpleDateFormat dfs = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+	        long between = 0;
+	        try {
+	            java.util.Date begin = dfs.parse("2009-07-10 10:22:21.214");
+	            java.util.Date end = dfs.parse("2009-07-20 11:24:49.145");
+	            between = (end.getTime() - begin.getTime());// 得到两者的毫秒数
+	        } catch (Exception ex) {
+	            ex.printStackTrace();
+	        }
+	        long day = between / (24 * 60 * 60 * 1000);
+	        long hour = (between / (60 * 60 * 1000) - day * 24);
+	        long min = ((between / (60 * 1000)) - day * 24 * 60 - hour * 60);
+	        long s = (between / 1000 - day * 24 * 60 * 60 - hour * 60 * 60 - min * 60);
+	        long ms = (between - day * 24 * 60 * 60 * 1000 - hour * 60 * 60 * 1000
+	                - min * 60 * 1000 - s * 1000);
+	        System.out.println(day + "天" + hour + "小时" + min + "分" + s + "秒" + ms
+	                + "毫秒");
+	}
+
+	public void test10(){
+		Date date = new Date();
+		Timer timer = new Timer();
+		
+		String time = "1507864802254";
+		long timelong = Long.valueOf(time);
+		long timelong1 = date.getTime();
+		
+		System.out.println("时差    =  " + (timelong1-timelong));
+		
+		TimerTask timerTask = new TimerTask() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				
+				System.out.println("ganshenmene????");
+			}
+		};
+		timer.schedule(timerTask, date);
+		date.getTime();
+		Timestamp timestamp = new Timestamp(date.getTime());
+		
+		// timestamp = 2017-10-11 14:30:03.809
+		//  date = 1507703403809
+//		timestamp = 2017-10-11 14:31:24.111
+//		date = 1507703484111
+
+		System.out.println( " timestamp = " + timestamp );
+		System.out.println("date = " + date.getTime());
+	}
 	
 	public void test12(){
 		String url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code";
@@ -58,7 +120,8 @@ public class SqlTest {
             public void onFinish(String respose) {
                 //处理请求
             	System.out.println("qiuchengong ");
-            	System.out.println("ssssssssss" + HttpUtil.getJson());
+            	System.out.println("ssssssssss" );
+				
             	
             }
 
@@ -66,7 +129,7 @@ public class SqlTest {
             public void onError(Exception e) {
                 //处理异常
             	System.out.println("siqnsa;djfal;fskdjlaksdfj;alfskjd ");
-            	System.out.println("sadfasdfa"+ HttpUtil.getJson());
+            	System.out.println("sadfasdfa");
             }
         });
 		
@@ -143,30 +206,7 @@ public class SqlTest {
 		String code = "071GzoZb1Npuls0hWkXb11hIZb1GzoZ5";
 		jdbcService.WeiXinlogin(code);
 	}
-	public void test10(){
-		Date date = new Date();
-		Timer timer = new Timer();
-		TimerTask timerTask = new TimerTask() {
-			
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				
-				System.out.println("ganshenmene????");
-			}
-		};
-		timer.schedule(timerTask, date);
-		date.getTime();
-		Timestamp timestamp = new Timestamp(date.getTime());
-		
-		// timestamp = 2017-10-11 14:30:03.809
-		//  date = 1507703403809
-//		timestamp = 2017-10-11 14:31:24.111
-//		date = 1507703484111
 
-		System.out.println( " timestamp = " + timestamp );
-		System.out.println("date = " + date.getTime());
-	}
 	public void test09(){
 		String uri = "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=APPID&grant_type=refresh_token&refresh_token=REFRESH_TOKEN";
 		StringBuilder builder = null;
@@ -198,11 +238,8 @@ public class SqlTest {
         
         
 
-        String aaa = "{'info':'login','data':{'username':'zhangsan','sex':'nan','age':'55'}}";
-        String jsonObject = "";
         
         JSONObject jsonObject1;
-        String info = null ;
         JSONObject data = null;
 		try {
 			jsonObject1 = new JSONObject(json_access_token);
@@ -261,7 +298,6 @@ public class SqlTest {
 	
 	public void test01(){
 		String userId = "1";
-		String seedId = "5";
 		String seedNumber = "5";
 		//3-1.查询种子表，用户是否有seedId种子，有则获取其数量，并进行增加，没有则添加，
 		String sqlIsSeed = "select * from farm_seed where seedId="+userId;
@@ -325,8 +361,8 @@ public class SqlTest {
 
 		String code = "" ;
 		if (jdbcService.login(code)) {
-			Long userId = (long) 1;
-			LoginResultData loginResponseData = jdbcService.loginResult(userId);
+			User user = new User();
+			LoginResultData loginResponseData = jdbcService.loginResult(user);
 			LoginResult loginResponse = new LoginResult();
 			loginResponse.setInfo(info);
 			loginResponse.setLoginResponseData(loginResponseData);

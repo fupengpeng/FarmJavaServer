@@ -19,6 +19,7 @@
         <property name="seedType" column="seedType"></property>
 		<property name="seedImage" column="seedImage"></property>
 		<property name="seedNumber" column="seedNumber"></property>
+		<property name="seedPlantTime" column="seedPlantTime"></property>
         
 		<many-to-one name="seedUser" class="com.jiudianlianxian.domain.User"
 			column="userId">

@@ -11,6 +11,7 @@
 		<property name="userNickName" column="userNickName"></property>
 		<property name="userImage" column="userImage"></property>
 		<property name="userGold" column="userGold"></property>
+		<property name="openid" column="openid"></property>
 		<property name="userExperience" column="userExperience"></property>
 		
 		<set name="userSeeds" cascade="save-update,delete">

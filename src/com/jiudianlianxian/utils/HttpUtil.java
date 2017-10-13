@@ -6,9 +6,12 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import com.jiudianlianxian.domain.User;
+
 public class HttpUtil {
-	static String json = null;
-	 public static void requestData(final String urlStr, final HttpCallBackListener listener) {
+	private static User user;
+	
+	 public static User requestData(final String urlStr, final HttpCallBackListener listener) {
 	        new Thread(new Runnable() {
 	            @Override
 	            public void run() {
@@ -16,18 +19,18 @@ public class HttpUtil {
 	                try {
 	                    URL url = new URL(urlStr);
 	                    connection = (HttpURLConnection) url.openConnection();
+	                    
 	                    connection.setRequestMethod("GET");
 	                    connection.setConnectTimeout(8000);
 	                    connection.setReadTimeout(8000);
 	                    connection.setDoInput(true);
 	                    connection.setDoOutput(true);
 	                    InputStream in = connection.getInputStream();
-	                    BufferedReader br = new BufferedReader(new InputStreamReader(in));
+	                    BufferedReader br = new BufferedReader(new InputStreamReader(in,"UTF-8"));
 	                    StringBuilder sb = new StringBuilder();
 	                    String line;
 	                    while ((line = br.readLine()) != null) {
-	                    	json = line;
-	                    	System.out.println("json = " + json);
+	                    	
 	                    	System.out.println("line  = " + line  );
 	                        sb.append(line);
 	                    }
@@ -48,13 +51,16 @@ public class HttpUtil {
 	                }
 	            }
 	        }).start();
+			return user;
 	    }
-	public static String getJson() {
-		return json;
+	public User getUser() {
+		return user;
 	}
-	public static void setJson(String json) {
-		HttpUtil.json = json;
+	public void setUser(User user) {
+		HttpUtil.user = user;
 	}
+	 
+
 	 
 
 }

@@ -72,41 +72,41 @@ public class SqlHelper {
 		return ct;
 	}
 
-	// 分页问题？？？？？？？
-	public static ResultSet executeQuery2() {
-		return null;
-	}
-
-	// 调用存储过程，有返回Result参数的存储过程
-	// sql call 过程
-	public static CallableStatement callPro2(String sql, String[] inparameters,
-			Integer[] outparmeters) {
-		try {
-			ct = getConnection();
-			cs = ct.prepareCall(sql);
-			if (inparameters != null) {
-				for (int i = 0; i < inparameters.length; i++) {
-					cs.setObject(i + 1, inparameters[i]);
-				}
-			}
-			// 给out参数赋值
-			if (outparmeters != null) {
-				for (int i = 0; i < outparmeters.length; i++) {
-					// TODO setObject参数待修改
-					cs.setObject(inparameters.length + i + 1, inparameters[i]);
-				}
-			}
-
-			cs.execute();
-
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e.getMessage());
-		} finally {
-			// 不需要关闭
-		}
-		return cs;
-	}
+//	// 分页问题？？？？？？？
+//	public static ResultSet executeQuery2() {
+//		return null;
+//	}
+//
+//	// 调用存储过程，有返回Result参数的存储过程
+//	// sql call 过程
+//	public static CallableStatement callPro2(String sql, String[] inparameters,
+//			Integer[] outparmeters) {
+//		try {
+//			ct = getConnection();
+//			cs = ct.prepareCall(sql);
+//			if (inparameters != null) {
+//				for (int i = 0; i < inparameters.length; i++) {
+//					cs.setObject(i + 1, inparameters[i]);
+//				}
+//			}
+//			// 给out参数赋值
+//			if (outparmeters != null) {
+//				for (int i = 0; i < outparmeters.length; i++) {
+//					// TODO setObject参数待修改
+//					cs.setObject(inparameters.length + i + 1, inparameters[i]);
+//				}
+//			}
+//
+//			cs.execute();
+//
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//			throw new RuntimeException(e.getMessage());
+//		} finally {
+//			// 不需要关闭
+//		}
+//		return cs;
+//	}
 
 	// 调用存储过程
 	// sql 象 {call 过程(?,?,?)}
@@ -168,7 +168,7 @@ public class SqlHelper {
 			e.printStackTrace();
 			throw new RuntimeException(e.getMessage());
 		} finally {
-			// close(rs, cs, ct);
+//			 close(rs, cs, ct);
 		}
 
 		return rs;
@@ -183,7 +183,7 @@ public class SqlHelper {
 			ct = getConnection();
 
 			// 传入的sql（可能是多个）
-			ct.setAutoCommit(false);
+			ct.setAutoCommit(false);  //设置sql语句不是自动提交
 			for (int i = 0; i < sql.length; i++) {
 				if (parameters[i] != null) {
 					ps = ct.prepareStatement(sql[i]);
@@ -193,7 +193,7 @@ public class SqlHelper {
 					ps.executeUpdate();
 				}
 			}
-			ct.commit();
+			ct.commit();  //手动提交
 		} catch (SQLException e) {
 			e.printStackTrace();
 			try {
@@ -275,7 +275,7 @@ public class SqlHelper {
 			while (rs.next()) {
 				
 				id = rs.getLong(1);
-				System.out.println("刚刚插入数据的id   11 = " + rs.getInt(1));
+				System.out.println("刚刚插入数据的id  = " + id);
 			}
 			
 		} catch (SQLException e) {
@@ -283,7 +283,7 @@ public class SqlHelper {
 			throw new RuntimeException(e.getMessage());
 
 		} finally {
-			close(rs, ps, ct);
+//			close(rs, ps, ct);
 		}
 		return id;
 

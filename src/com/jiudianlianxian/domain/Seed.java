@@ -28,6 +28,7 @@ public class Seed {
 	private String seedState;
 	//种子生长时长
 	private Long seedGrowthTime;
+	
 	//种子购买价格
 	private Long seedBuyPrice;
 	//种子出售价格
@@ -44,10 +45,21 @@ public class Seed {
 	private String seedImage;
 	// 种子数量，如果在商店，则为0
 	private int seedNumber;
+
+	//种植种植时间，当种子状态为3时才有值
+	private Long seedPlantTime;
 	
 	private User seedUser ;
 	
 	private Set<Land> seedLands = new HashSet<Land>();
+
+	public Long getSeedPlantTime() {
+		return seedPlantTime;
+	}
+
+	public void setSeedPlantTime(Long seedPlantTime) {
+		this.seedPlantTime = seedPlantTime;
+	}
 
 	public Long getSeedId() {
 		return seedId;
