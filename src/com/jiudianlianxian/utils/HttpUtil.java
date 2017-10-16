@@ -1,17 +1,29 @@
 package com.jiudianlianxian.utils;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.concurrent.CountDownLatch;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.concurrent.FutureCallback;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClients;
 
 import com.jiudianlianxian.domain.User;
+import com.jiudianlianxian.util.JDBCUtil;
 
 public class HttpUtil {
-	private static User user;
 	
-	 public static User requestData(final String urlStr, final HttpCallBackListener listener) {
+	 public static void requestData(final String urlStr,final HttpCallBackListener listener) {
+		
 	        new Thread(new Runnable() {
 	            @Override
 	            public void run() {
@@ -51,16 +63,70 @@ public class HttpUtil {
 	                }
 	            }
 	        }).start();
-			return user;
+			
+
 	    }
-	public User getUser() {
-		return user;
-	}
-	public void setUser(User user) {
-		HttpUtil.user = user;
-	}
 	 
-
 	 
+	 public static void resquestData(final String url , final HttpCallBackListener listener){
+		 
 
+
+			RequestConfig requestConfig = RequestConfig.custom()
+					.setSocketTimeout(3000).setConnectTimeout(3000).build();
+			CloseableHttpAsyncClient httpclient = HttpAsyncClients.custom()
+					.setDefaultRequestConfig(requestConfig).build();
+
+			try {
+				httpclient.start();
+				final HttpGet request = new HttpGet(url);
+				final CountDownLatch latch = new CountDownLatch(1);
+				httpclient.execute(request, new FutureCallback<HttpResponse>() {
+
+					@Override
+					public void failed(Exception e) {
+						latch.countDown();
+						System.out.println(request.getRequestLine() + "->" + e);
+						System.out.println("请求失败");
+						listener.onError(e);
+
+					}
+
+					@Override
+					public void completed(HttpResponse response) {
+						latch.countDown();
+						System.out.println(request.getRequestLine() + "->"
+								+ response.getStatusLine());
+						listener.onFinish(response.toString());
+					
+					}
+
+					@Override
+					public void cancelled() {
+						latch.countDown();
+						System.out.println(request.getRequestLine() + " cancelled");
+						System.out.println("取消请求");
+
+					}
+				});
+
+				try {
+					latch.await();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			} finally {
+				try {
+					httpclient.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+
+		 
+		 
+	 }
 }

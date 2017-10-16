@@ -17,7 +17,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.concurrent.FutureCallback;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClients;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.Test;
@@ -36,6 +47,7 @@ import com.jiudianlianxian.data.GetSeedMsgResultData;
 import com.jiudianlianxian.data.LoginResultData;
 import com.jiudianlianxian.data.PlantResultData;
 import com.jiudianlianxian.data.SeedMsgAllResultData;
+import com.jiudianlianxian.domain.Land;
 import com.jiudianlianxian.domain.RipeMessage;
 import com.jiudianlianxian.domain.Seed;
 import com.jiudianlianxian.domain.User;
@@ -46,182 +58,631 @@ import com.jiudianlianxian.utils.HttpCallBackListener;
 import com.jiudianlianxian.utils.HttpUtil;
 
 public class SqlTest {
-	  JDBCService jdbcService  = new JDBCService();
-	  String info = "------";
-	  String jsonObject = "";
-
+	JDBCService jdbcService = new JDBCService();
+	String info = "------";
+	String jsonObject = "";
 	
+	
+	JSONObject jsonObject1;
+	String access_token = null;
+	int expires_in = 0;
+	String refresh_token = null;
+	String openid = "oVVdbwvclc7NjI2xjhUxE-Gq_daU";
+	String scope = null;
+
+	int errcode = 0;
+	String errmsg = null;
+
+	String nickname = null;
+	int sex = 0;
+	String province = null;
+	String city = null;
+	String country = null;
+	String headimgurl = null;
+	JSONArray jsonArray = null;
+	String[] privilege = null;
+	String unionid = null;
+	
+	
+
 	public static void main(String[] args) {
 		SqlTest sqlTest = new SqlTest();
-		
-//		String url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code";
-//		String aaa = sqlTest.sendGet(url);
-//		System.out.println("aaa = " + aaa);
-		
+//		sqlTest.test15();
+		// String url =
+		// "https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code";
+		// String aaa = sqlTest.sendGet(url);
+		// System.out.println("aaa = " + aaa);
+
 	}
 	
-	
-	public void test13(){
-		 SimpleDateFormat dfs = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-	        long between = 0;
-	        try {
-	            java.util.Date begin = dfs.parse("2009-07-10 10:22:21.214");
-	            java.util.Date end = dfs.parse("2009-07-20 11:24:49.145");
-	            between = (end.getTime() - begin.getTime());// 得到两者的毫秒数
-	        } catch (Exception ex) {
-	            ex.printStackTrace();
-	        }
-	        long day = between / (24 * 60 * 60 * 1000);
-	        long hour = (between / (60 * 60 * 1000) - day * 24);
-	        long min = ((between / (60 * 1000)) - day * 24 * 60 - hour * 60);
-	        long s = (between / 1000 - day * 24 * 60 * 60 - hour * 60 * 60 - min * 60);
-	        long ms = (between - day * 24 * 60 * 60 * 1000 - hour * 60 * 60 * 1000
-	                - min * 60 * 1000 - s * 1000);
-	        System.out.println(day + "天" + hour + "小时" + min + "分" + s + "秒" + ms
-	                + "毫秒");
+	public void pushMsg(String str){
+		System.out.println("str  -----------------------==  " + str);
+	}
+	public void test15(String code){
+		
+		System.out.println("data --= " + code);
+		LoginResult loginResult = new LoginResult();
+		
+		//登录筛选
+		if (jdbcService.login(code)) { // 登录是否成功
+			User user = new User();
+			System.out.println("调用微信登录方法WeiXinlogin");
+			String url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxa8fb492572709521&secret=3117081dbe26f23ffbf84b5e96472f53&code="
+					+ code + "&grant_type=authorization_code";
+			System.out.println("  001  == " + url);
+			//客户端发送的code进行微信网络请求，然后
+			HttpUtil.requestData(url, new HttpCallBackListener() {
+
+				@Override
+				public void onFinish(String response) {
+					System.out.println("onFinish  response  = " + response.toString());
+					// 处理请求
+					if (response != null) {
+						System.out.println("获取access_token  json = "+ response);
+						analysisAccessToken(response);
+						System.out.println("access_token_______________ = " + access_token  + "    --  openid  = " + openid);
+
+						boolean bb = queryUser(user);
+						//判断数据库是否已有用户数据
+						if (bb) {
+							System.out.println("--------获取到数据，输出----------------------");
+							//有数据，则直接返回给客户端
+							resultLoginData(loginResult, user);
+							System.out.println("数据库查询到用户，无需再次请求，直接得到用户 = "+ user);
+
+						} else {
+							//没有数据，根据获取到的openid去微信服务器获取用户数据
+							String url = "https://api.weixin.qq.com/sns/userinfo?access_token="
+									+ access_token
+									+ "&openid="
+									+ openid;
+							System.out.println("未从数据库获取到数据，网络请求进行数据获取----url  = " +url);
+							HttpUtil.requestData(url,
+									new HttpCallBackListener() {
+										@Override
+										public void onFinish(
+												String respose) {
+											// 判断请求到的数据是否为空
+											if (respose != null) {
+												System.out.println("获取到用户信息json  = "+ respose);
+												//不为空，进行解析，并将解析的数据保存到本地数据库中去
+												analysisInsertData(user,
+														respose);
+												//将获取到的数据返回给客户端
+												resultLoginData(loginResult,
+														user);
+												System.out.println("网络请求到用户数据  = "+ user);
+											} else {
+												System.out.println("获取到用户信息的json为空  = "+ user);
+											}
+										}
+										
+										//解析微信首次登录获取到的用户数据，并插入到本地数据库
+										private void analysisInsertData(
+												User user, String respose) {
+											try {
+												JSONObject jsonObject2 = new JSONObject(
+														respose);
+												openid = jsonObject2.getString("openid");
+												nickname = jsonObject2
+														.getString("nickname");
+												sex = jsonObject2
+														.getInt("sex");
+												province = jsonObject2
+														.getString("province");
+
+												city = jsonObject2
+														.getString("city");
+												country = jsonObject2
+														.getString("country");
+												headimgurl = jsonObject2
+														.getString("headimgurl");
+												jsonArray = jsonObject2
+														.getJSONArray("privilege");
+												for (int i = 0; i < jsonArray
+														.length(); i++) {
+													privilege[i] = jsonArray
+															.getString(i);
+												}
+												unionid = jsonObject2
+														.getString("unionid");
+
+											} catch (JSONException e) {
+												//
+												e.printStackTrace();
+											}
+											System.out
+													.println("nickname = "
+															+ nickname);
+
+											Long userGold = (long) 5000;
+											Long userExperience = (long) 500;
+											String sql3 = "INSERT INTO farm_user("
+													+ "userNickName,userImage,userGold,openid,userExperience)"
+													+ "VALUES('"
+													+ nickname
+													+ "','"
+													+ headimgurl
+													+ "',"
+													+ userGold
+													+ ",'"
+													+ openid
+													+ "',"
+													+ userExperience
+													+ ") ";
+											System.out
+													.println("sql3===="
+															+ sql3);
+
+											try {
+												user.setUserId(JDBCUtil
+														.executeUpdateGetId(sql3));
+												user.setUserNickName(nickname);
+												user.setUserImage(headimgurl);
+												user.setUserGold(userGold);
+												user.setOpenid(openid);
+												user.setUserExperience(userExperience);
+												System.out
+														.println("刚刚插入数据的id ---  11 = "
+																+ user.getUserId());
+
+											} catch (Exception e) {
+												e.printStackTrace();
+											}
+										}
+
+										@Override
+										public void onError(
+												Exception e) {
+											// 处理异常
+											System.out.println(" 获取到用户信息的网络请求失败 ，给客户端提示 = "+ user);
+
+										}
+									});
+						}
+
+					} else {
+						System.out.println("获取access_token 的json为空 = "+ user);
+					}
+				}
+
+				//获取到user，并将数据返回给客户端
+				private void resultLoginData(LoginResult loginResult, User user) {
+					List<Land> lands = new ArrayList<Land>();
+					// Set<Land> lands = new HashSet<Land>();
+					for (int i = 0; i < 10000; i++) {
+						Land land = new Land();
+						String sql1 = "select * from farm_land where userId="
+								+ user.getUserId();
+						ResultSet rs1 = JDBCUtil.executeQuery(sql1);
+						try {
+							// 查询数据库,获取上述uid对应的数据
+							while (rs1.next()) {
+								land.setLandId(rs1.getLong(1));
+								land.setLandName(rs1.getString(2));
+								land.setLandState(rs1.getString(3));
+							}
+						} catch (SQLException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} finally {
+							JDBCUtil.close(rs1, JDBCUtil.getPs(), JDBCUtil.getConnection());
+						}
+						lands.add(land);
+					}
+					LoginResultData loginResponseData = new LoginResultData();
+					// user.setUserLands(lands);
+
+					loginResponseData.setUser(user);
+					loginResponseData.setLands(lands);
+					String loginResultData = com.alibaba.fastjson.JSONObject
+							.toJSONString(loginResponseData);
+					System.out.println("loginResultData------------  = " + loginResultData);
+					
+					loginResult.setInfo("info");
+					loginResult.setCode("1");
+					loginResult.setLoginResponseData(loginResponseData);
+					String jsonObject = com.alibaba.fastjson.JSONObject
+							.toJSONString(loginResult);
+					System.out.println("jsonObject  = " + jsonObject);
+					pushMsg(jsonObject);
+				}
+
+				//解析access_token的网络请求数据，得到access_token和openid
+				private void analysisAccessToken(String response) {
+					try {
+						JSONObject jsonObject1 = new JSONObject(
+								response);
+						access_token = jsonObject1
+								.getString("access_token");
+						expires_in = jsonObject1
+								.getInt("expires_in");
+						refresh_token = jsonObject1
+								.getString("refresh_token");
+						openid = jsonObject1.getString("openid");
+						scope = jsonObject1.getString("scope");
+
+					} catch (JSONException e) {
+						//
+						e.printStackTrace();
+					}
+				}
+
+				//  获取access_token后进行数据库查询是否有openid的用户
+				private boolean queryUser(User user) {
+					// 查询数据库
+					// 看看用户是否已经使用此微信账号登陆过，登录过则直接使用数据库数据，否则在请求微信服务器，获取新的用户数据
+					boolean bb = false;
+					String sql = "select * from farm_user where openid='"
+							+ openid + "'";
+					System.out.println("sql = " + sql);
+					ResultSet rs = JDBCUtil.executeQuery(sql);
+
+					try {
+						// 查询数据库,获取上述uid对应的数据
+						while (rs.next()) {
+							System.out.println("遍历数据库查询到数据");
+							user.setUserId(rs.getLong(1));
+							user.setUserNickName(rs
+									.getString(2));
+							user.setUserImage(rs.getString(3));
+							user.setUserGold(rs.getLong(4));
+							user.setUserExperience(rs
+									.getLong(6));
+							bb = true;
+
+						}
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						System.out.println("wenti  01  ----");
+						e.printStackTrace();
+					} finally {
+						JDBCUtil.close(rs, JDBCUtil.getPs(),
+								JDBCUtil.getConnection());
+					}
+					return bb;
+				}
+				
+				@Override
+				public void onError(Exception e) {
+					// 处理异常
+					System.out
+							.println("获取access_token 的网络请求失败,给客户端提示  = "
+									+ user);
+
+				}
+			
+			});
+			
+			
+			
+
+			System.out.println("请求导数据，返回用户数据---- = " + user);
+
+		} else {
+			loginResult.setInfo(info);
+			loginResult.setCode("0");
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(loginResult);
+			System.out.println("jsonObject  = " + jsonObject);
+			pushMsg(jsonObject);
+		}
+	}
+	public void test14() {
+
+		RequestConfig requestConfig = RequestConfig.custom()
+				.setSocketTimeout(3000).setConnectTimeout(3000).build();
+		CloseableHttpAsyncClient httpclient = HttpAsyncClients.custom()
+				.setDefaultRequestConfig(requestConfig).build();
+
+		try {
+			httpclient.start();
+			final HttpGet[] requests = new HttpGet[] {
+					new HttpGet("https://www.apache.org/"),
+					new HttpGet("https://www.verisign.com/"),
+					new HttpGet("https://www.google.com/"),
+					new HttpGet("https://www.baidu.com/") };
+
+			final CountDownLatch latch = new CountDownLatch(requests.length);
+			for (final HttpGet request : requests) {
+				httpclient.execute(request, new FutureCallback<HttpResponse>() {
+
+					@Override
+					public void failed(Exception arg0) {
+						latch.countDown();
+						System.out.println(request.getRequestLine() + "->"
+								+ arg0);
+
+					}
+
+					@Override
+					public void completed(HttpResponse response) {
+						latch.countDown();
+						System.out.println(request.getRequestLine() + "->"
+								+ response.getStatusLine());
+
+					}
+
+					@Override
+					public void cancelled() {
+						latch.countDown();
+						System.out.println(request.getRequestLine()
+								+ " cancelled");
+
+					}
+				});
+			}
+
+			try {
+				latch.await();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println("Shutting down");
+		} finally {
+			try {
+				httpclient.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		System.out.println("Done");
+
 	}
 
-	public void test10(){
+	public void test13() {
+		SimpleDateFormat dfs = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+		long between = 0;
+		try {
+			java.util.Date begin = dfs.parse("2009-07-10 10:22:21.214");
+			java.util.Date end = dfs.parse("2009-07-20 11:24:49.145");
+			between = (end.getTime() - begin.getTime());// 得到两者的毫秒数
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		long day = between / (24 * 60 * 60 * 1000);
+		long hour = (between / (60 * 60 * 1000) - day * 24);
+		long min = ((between / (60 * 1000)) - day * 24 * 60 - hour * 60);
+		long s = (between / 1000 - day * 24 * 60 * 60 - hour * 60 * 60 - min * 60);
+		long ms = (between - day * 24 * 60 * 60 * 1000 - hour * 60 * 60 * 1000
+				- min * 60 * 1000 - s * 1000);
+		System.out.println(day + "天" + hour + "小时" + min + "分" + s + "秒" + ms
+				+ "毫秒");
+	}
+
+	public void test10() {
 		Date date = new Date();
 		Timer timer = new Timer();
-		
+
 		String time = "1507864802254";
 		long timelong = Long.valueOf(time);
 		long timelong1 = date.getTime();
-		
-		System.out.println("时差    =  " + (timelong1-timelong));
-		
+
+		System.out.println("时差    =  " + (timelong1 - timelong));
+
 		TimerTask timerTask = new TimerTask() {
-			
+
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
-				
+
 				System.out.println("ganshenmene????");
 			}
 		};
 		timer.schedule(timerTask, date);
 		date.getTime();
 		Timestamp timestamp = new Timestamp(date.getTime());
-		
-		// timestamp = 2017-10-11 14:30:03.809
-		//  date = 1507703403809
-//		timestamp = 2017-10-11 14:31:24.111
-//		date = 1507703484111
 
-		System.out.println( " timestamp = " + timestamp );
+		// timestamp = 2017-10-11 14:30:03.809
+		// date = 1507703403809
+		// timestamp = 2017-10-11 14:31:24.111
+		// date = 1507703484111
+
+		System.out.println(" timestamp = " + timestamp);
 		System.out.println("date = " + date.getTime());
 	}
-	
-	public void test12(){
-		String url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code";
-		HttpUtil.requestData(url, new HttpCallBackListener() {
-            @Override
-            public void onFinish(String respose) {
-                //处理请求
-            	System.out.println("qiuchengong ");
-            	System.out.println("ssssssssss" );
-				
-            	
-            }
 
-            @Override
-            public void onError(Exception e) {
-                //处理异常
-            	System.out.println("siqnsa;djfal;fskdjlaksdfj;alfskjd ");
-            	System.out.println("sadfasdfa");
-            }
-        });
-		
-	}
-	
-    /**
+	public void test11() {
 
-     * 发送get请求
+		RequestConfig requestConfig = RequestConfig.custom()
+				.setSocketTimeout(3000).setConnectTimeout(3000).build();
+		CloseableHttpAsyncClient httpclient = HttpAsyncClients.custom()
+				.setDefaultRequestConfig(requestConfig).build();
 
-     * @param url    路径
+		try {
+			httpclient.start();
 
-     * @return
+			String url = "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=APPID&grant_type=refresh_token&refresh_token=REFRESH_TOKEN";
+			final HttpGet request = new HttpGet(url);
 
-     */
+			final CountDownLatch latch = new CountDownLatch(1);
 
-    /**
-     * 向指定URL发送GET方法的请求
-     * 
-     * @param url
-     *            发送请求的URL
-     * @param param
-     *            请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
-     * @return URL 所代表远程资源的响应结果
-     */
-    public static String sendGet(String url) {
-        String result = "";
-        BufferedReader in = null;
-        try {
-            URL realUrl = new URL(url);
-            // 打开和URL之间的连接
-            URLConnection connection = realUrl.openConnection();
-//            // 设置通用的请求属性
-//            connection.setRequestProperty("accept", "*/*");
-//            connection.setRequestProperty("connection", "Keep-Alive");
-//            connection.setRequestProperty("user-agent",
-//                    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
-            // 建立实际的连接
-//            connection.connect();
-            // 获取所有响应头字段
-//            Map<String, List<String>> map = connection.getHeaderFields();
-//            // 遍历所有的响应头字段
-//            for (String key : map.keySet()) {
-//                System.out.println(key + "--->" + map.get(key));
-//            }
-            // 定义 BufferedReader输入流来读取URL的响应
-            in = new BufferedReader(new InputStreamReader(
-                    connection.getInputStream()));
-            String line;
-            while ((line = in.readLine()) != null) {
-                result += line;
-                
-            }
-            
-        } catch (Exception e) {
-            System.out.println("发送GET请求出现异常！" + e);
-            e.printStackTrace();
-        }
-        // 使用finally块来关闭输入流
-        finally {
-            try {
-                if (in != null) {
-                    in.close();
-                }
-            } catch (Exception e2) {
-                e2.printStackTrace();
-            }
-        }
-        return result;
-    }
-	public void test11(){
-		
-		
-		
-		String code = "071GzoZb1Npuls0hWkXb11hIZb1GzoZ5";
-		jdbcService.WeiXinlogin(code);
+			httpclient.execute(request, new FutureCallback<HttpResponse>() {
+
+				@Override
+				public void failed(Exception arg0) {
+					latch.countDown();
+					System.out.println(request.getRequestLine() + "->" + arg0);
+
+				}
+
+				@Override
+				public void completed(HttpResponse response) {
+					latch.countDown();
+					System.out.println(request.getRequestLine() + "->"
+							+ response.getStatusLine());
+					System.out.println("response = " + response);
+
+				}
+
+				@Override
+				public void cancelled() {
+					latch.countDown();
+					System.out.println(request.getRequestLine() + " cancelled");
+
+				}
+			});
+
+			try {
+				latch.await();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println("Shutting down");
+		} finally {
+			try {
+				httpclient.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		System.out.println("Done");
+
 	}
 
-	public void test09(){
+	public void test12() {
+
+		CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
+		httpclient.start();
+
+		final CountDownLatch latch = new CountDownLatch(1);
+		final HttpGet request = new HttpGet(
+				"https://www.baidu.com/?tn=25017023_8_dg");
+
+		System.out.println(" caller thread id is : "
+				+ Thread.currentThread().getId());
+
+		httpclient.execute(request, new FutureCallback<HttpResponse>() {
+
+			public void completed(final HttpResponse response) {
+				latch.countDown();
+				System.out.println(" callback thread id is : "
+						+ Thread.currentThread().getId());
+				System.out.println(request.getRequestLine() + "->"
+						+ response.getStatusLine());
+				try {
+					String content = EntityUtils.toString(response.getEntity(),
+							"UTF-8");
+					System.out.println(" response content is : " + content);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+			public void failed(final Exception ex) {
+				latch.countDown();
+				System.out.println(request.getRequestLine() + "->" + ex);
+				System.out.println(" callback thread id is : "
+						+ Thread.currentThread().getId());
+			}
+
+			public void cancelled() {
+				latch.countDown();
+				System.out.println(request.getRequestLine() + " cancelled");
+				System.out.println(" callback thread id is : "
+						+ Thread.currentThread().getId());
+			}
+
+		});
+		try {
+			latch.await();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		try {
+			httpclient.close();
+		} catch (IOException ignore) {
+
+		}
+
+	}
+
+	/**
+	 * 
+	 * 发送get请求
+	 * 
+	 * @param url
+	 *            路径
+	 * 
+	 * @return
+	 */
+
+	/**
+	 * 向指定URL发送GET方法的请求
+	 * 
+	 * @param url
+	 *            发送请求的URL
+	 * @param param
+	 *            请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
+	 * @return URL 所代表远程资源的响应结果
+	 */
+	public static String sendGet(String url) {
+		String result = "";
+		BufferedReader in = null;
+		try {
+			URL realUrl = new URL(url);
+			// 打开和URL之间的连接
+			URLConnection connection = realUrl.openConnection();
+			// // 设置通用的请求属性
+			// connection.setRequestProperty("accept", "*/*");
+			// connection.setRequestProperty("connection", "Keep-Alive");
+			// connection.setRequestProperty("user-agent",
+			// "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+			// 建立实际的连接
+			// connection.connect();
+			// 获取所有响应头字段
+			// Map<String, List<String>> map = connection.getHeaderFields();
+			// // 遍历所有的响应头字段
+			// for (String key : map.keySet()) {
+			// System.out.println(key + "--->" + map.get(key));
+			// }
+			// 定义 BufferedReader输入流来读取URL的响应
+			in = new BufferedReader(new InputStreamReader(
+					connection.getInputStream()));
+			String line;
+			while ((line = in.readLine()) != null) {
+				result += line;
+
+			}
+
+		} catch (Exception e) {
+			System.out.println("发送GET请求出现异常！" + e);
+			e.printStackTrace();
+		}
+		// 使用finally块来关闭输入流
+		finally {
+			try {
+				if (in != null) {
+					in.close();
+				}
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
+		}
+		return result;
+	}
+
+	public void test09() {
 		String uri = "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=APPID&grant_type=refresh_token&refresh_token=REFRESH_TOKEN";
 		StringBuilder builder = null;
 		String json_access_token = null;
 		try {
-			URL url = new URL(uri);//如果有参数，在网址中携带参数
+			URL url = new URL(uri);// 如果有参数，在网址中携带参数
 			URLConnection conn = url.openConnection();
 			InputStream is = conn.getInputStream();
 			InputStreamReader isr = new InputStreamReader(is);
 			BufferedReader br = new BufferedReader(isr);
-			
+
 			String line;
 			builder = new StringBuilder();
-			while((line=br.readLine())!=null){
-			      builder.append(line);
+			while ((line = br.readLine()) != null) {
+				builder.append(line);
 			}
 			br.close();
 			isr.close();
@@ -233,14 +694,11 @@ public class SqlTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        json_access_token = builder.toString();
-        System.out.println(builder.toString());
-        
-        
+		json_access_token = builder.toString();
+		System.out.println(builder.toString());
 
-        
-        JSONObject jsonObject1;
-        JSONObject data = null;
+		JSONObject jsonObject1;
+		JSONObject data = null;
 		try {
 			jsonObject1 = new JSONObject(json_access_token);
 			info = jsonObject1.getString("info");
@@ -249,132 +707,148 @@ public class SqlTest {
 			System.out.println("username = " + data.getString("username"));
 			System.out.println("sex = " + data.getString("sex"));
 			System.out.println("age = " + data.getString("age"));
-			
+
 		} catch (JSONException e) {
-			// 
+			//
 			e.printStackTrace();
 		}
-        
-        
-        
+
 	}
-	public void test08(){
+
+	public void test08() {
 		String code = "";
 		boolean b = jdbcService.login(code);
 		System.out.println("bh = " + b);
 	}
-	public void test07(){
+
+	public void test07() {
 		Long userId = (long) 1;
-		GetSeedMsgResultData getSeedMsgResultData = jdbcService.getSeedMsg(userId);
+		GetSeedMsgResultData getSeedMsgResultData = jdbcService
+				.getSeedMsg(userId);
 		GetSeedMsgResult getSeedMsgResult = new GetSeedMsgResult();
 		if (getSeedMsgResultData != null) {
 			getSeedMsgResult.setInfo(info);
 			getSeedMsgResult.setGetSeedMsgResultData(getSeedMsgResultData);
-			jsonObject = com.alibaba.fastjson.JSONObject.toJSONString(getSeedMsgResult);
-		    System.out.println("jsonObject  = " + jsonObject);
-			
-		}else {
-			jsonObject = com.alibaba.fastjson.JSONObject.toJSONString(getSeedMsgResult);
-		    System.out.println("jsonObject  = " + jsonObject);
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(getSeedMsgResult);
+			System.out.println("jsonObject  = " + jsonObject);
+
+		} else {
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(getSeedMsgResult);
+			System.out.println("jsonObject  = " + jsonObject);
 		}
 	}
-	public void test06(){
+
+	public void test06() {
 		Long userId = (long) 1;
-		GetLandMsgResultData getLandMsgResultData = jdbcService.getLandMsg(userId);
+		GetLandMsgResultData getLandMsgResultData = jdbcService
+				.getLandMsg(userId);
 		GetLandMsgResult getLandMsgResult = new GetLandMsgResult();
 		if (getLandMsgResultData != null) {
 			getLandMsgResult.setInfo(info);
 			getLandMsgResult.setGetLandMsgResultData(getLandMsgResultData);
-			jsonObject = com.alibaba.fastjson.JSONObject.toJSONString(getLandMsgResultData);
-		    System.out.println("jsonObject  = " + jsonObject);
-			
-		}else {
-			jsonObject = com.alibaba.fastjson.JSONObject.toJSONString(getLandMsgResultData);
-		    System.out.println("jsonObject  = " + jsonObject);
-			
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(getLandMsgResultData);
+			System.out.println("jsonObject  = " + jsonObject);
+
+		} else {
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(getLandMsgResultData);
+			System.out.println("jsonObject  = " + jsonObject);
+
 		}
 	}
-	
-	
-	public void test01(){
+
+	public void test01() {
 		String userId = "1";
 		String seedNumber = "5";
-		//3-1.查询种子表，用户是否有seedId种子，有则获取其数量，并进行增加，没有则添加，
-		String sqlIsSeed = "select * from farm_seed where seedId="+userId;
+		// 3-1.查询种子表，用户是否有seedId种子，有则获取其数量，并进行增加，没有则添加，
+		String sqlIsSeed = "select * from farm_seed where seedId=" + userId;
 		ResultSet rsIsSeed = SqlHelper.executeQuery(sqlIsSeed);
-		int priceIsSeed = 0 ;
+		int priceIsSeed = 0;
 		try {
 			// 查询数据库,获取上述uid对应的数据
-			
+
 			while (rsIsSeed.next()) {
-				priceIsSeed = (int) (Integer.parseInt(seedNumber) * (rsIsSeed.getDouble(5)));
+				priceIsSeed = (int) (Integer.parseInt(seedNumber) * (rsIsSeed
+						.getDouble(5)));
 			}
 		} catch (SQLException e) {
-			// 
+			//
 			e.printStackTrace();
-		}finally{
-			SqlHelper.close(rsIsSeed, SqlHelper.getPs(), SqlHelper.getConnection());
+		} finally {
+			SqlHelper.close(rsIsSeed, SqlHelper.getPs(),
+					SqlHelper.getConnection());
 		}
 	}
-	public static void test02(){
-		JDBCService  jdbcService = new JDBCService();
+
+	public static void test02() {
+		JDBCService jdbcService = new JDBCService();
 		jdbcService.getBuySeedResultData("1", "55", "2");
-		
+
 	}
-	public  void test03(){
+
+	public void test03() {
 		String userId = "1";
 		String seedId = "5";
 		String seedNumber = "5";
-		//根据id查找用户信息，更改其种子数量和金币数量
-		//1.查询种子信息，计算价格
-		//2.查询用户金币信息，金币是否购买种子，如不够直接返回提示用户
-		//3.金币够，则修改用户的种子信息和金币信息
-		//4.将新的用户数据返回给用户
-		BuySeedResultData buySeedResultData = jdbcService.getBuySeedResultData(userId, seedId, seedNumber);
+		// 根据id查找用户信息，更改其种子数量和金币数量
+		// 1.查询种子信息，计算价格
+		// 2.查询用户金币信息，金币是否购买种子，如不够直接返回提示用户
+		// 3.金币够，则修改用户的种子信息和金币信息
+		// 4.将新的用户数据返回给用户
+		BuySeedResultData buySeedResultData = jdbcService.getBuySeedResultData(
+				userId, seedId, seedNumber);
 		BuySeedResult buySeedResult = new BuySeedResult();
 		if (buySeedResultData != null) {
 			buySeedResult.setInfo(info);
 			buySeedResult.setBuySeedResultData(buySeedResultData);
-			jsonObject = com.alibaba.fastjson.JSONObject.toJSONString(buySeedResultData);
-		    System.out.println("jsonObject  = " + jsonObject);
-		    }
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(buySeedResultData);
+			System.out.println("jsonObject  = " + jsonObject);
+		}
 	}
-	
-	public  void test04(){
-		//查询数据库种子列表所有数据
+
+	public void test04() {
+		// 查询数据库种子列表所有数据
 		SeedMsgAllResultData seedMsgAllResultData = jdbcService.getSeedMsgAll();
 		SeedMsgAllResult seedMsgAllResult = new SeedMsgAllResult();
 		if (seedMsgAllResultData != null) {
 			seedMsgAllResult.setInfo(info);
 			seedMsgAllResult.setSeedMsgAllResultData(seedMsgAllResultData);
-			jsonObject = com.alibaba.fastjson.JSONObject.toJSONString(seedMsgAllResult);
-		    System.out.println("jsonObject  = " + jsonObject);
-			
-			
-		}else {
-			jsonObject = com.alibaba.fastjson.JSONObject.toJSONString(seedMsgAllResult);
-		    System.out.println("jsonObject  = " + jsonObject);
-			
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(seedMsgAllResult);
+			System.out.println("jsonObject  = " + jsonObject);
+
+		} else {
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(seedMsgAllResult);
+			System.out.println("jsonObject  = " + jsonObject);
+
 		}
 	}
-	public  void test05(){
 
-		String code = "" ;
+	public void test05() {
+
+		String code = "";
 		if (jdbcService.login(code)) {
 			User user = new User();
 			LoginResultData loginResponseData = jdbcService.loginResult(user);
 			LoginResult loginResponse = new LoginResult();
 			loginResponse.setInfo(info);
 			loginResponse.setLoginResponseData(loginResponseData);
-		    jsonObject = com.alibaba.fastjson.JSONObject.toJSONString(loginResponse);
-		    System.out.println("jsonObject  = " + jsonObject);
-			
-		}else {
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(loginResponse);
+			System.out.println("jsonObject  = " + jsonObject);
+
+		} else {
 			LoginResult loginResponse = new LoginResult();
 			loginResponse.setInfo(info);
-			jsonObject = com.alibaba.fastjson.JSONObject.toJSONString(loginResponse);
-		    System.out.println("jsonObject  = " + jsonObject);
-			
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(loginResponse);
+			System.out.println("jsonObject  = " + jsonObject);
+
 		}
 	}
 

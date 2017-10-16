@@ -40,6 +40,7 @@ import com.jiudianlianxian.domain.RipeMessage;
 import com.jiudianlianxian.domain.User;
 import com.jiudianlianxian.service.JDBCService;
 import com.jiudianlianxian.util.JDBCUtil;
+import com.jiudiannnnnnn.SqlTest;
 
 /**
  * 
@@ -163,32 +164,47 @@ public class AcceptClientMessage implements Runnable {
 
 					String code = jsonObject1.getString("data");
 					System.out.println("data = " + code);
-
-					if (jdbcService.login(code)) { // 登录是否成功
-
-						User user = jdbcService.WeiXinlogin(code);
-						LoginResultData loginResponseData = jdbcService
-								.loginResult(user);
-
-						LoginResult loginResult = new LoginResult();
-
-						loginResult.setInfo(info);
-						loginResult.setCode("1");
-						loginResult.setLoginResponseData(loginResponseData);
-						jsonObject = com.alibaba.fastjson.JSONObject
-								.toJSONString(loginResult);
-						System.out.println("jsonObject  = " + jsonObject);
-						pushMsg(jsonObject);
-
-					} else {
-						LoginResult loginResult = new LoginResult();
-						loginResult.setInfo(info);
-						loginResult.setCode("0");
-						jsonObject = com.alibaba.fastjson.JSONObject
-								.toJSONString(loginResult);
-						System.out.println("jsonObject  = " + jsonObject);
-						pushMsg(jsonObject);
-					}
+					LoginResult loginResult = new LoginResult();
+					
+					SqlTest sqlTest = new SqlTest();
+					sqlTest.test15(code);
+					
+//					if (jdbcService.login(code)) { // 登录是否成功
+//						User user = new User();
+//						jdbcService.WeiXinlogin(code,user);
+//						
+//						if (user != null) {
+//							LoginResultData loginResponseData = jdbcService
+//									.loginResult(user);
+//
+//							
+//
+//							loginResult.setInfo(info);
+//							loginResult.setCode("1");
+//							loginResult.setLoginResponseData(loginResponseData);
+//							jsonObject = com.alibaba.fastjson.JSONObject
+//									.toJSONString(loginResult);
+//							System.out.println("jsonObject  = " + jsonObject);
+//							pushMsg(jsonObject);
+//						}else {
+//							
+//							loginResult.setInfo(info);
+//							loginResult.setCode("0");
+//							jsonObject = com.alibaba.fastjson.JSONObject
+//									.toJSONString(loginResult);
+//							System.out.println("jsonObject  = " + jsonObject);
+//							pushMsg(jsonObject);
+//						}
+//						
+//
+//					} else {
+//						loginResult.setInfo(info);
+//						loginResult.setCode("0");
+//						jsonObject = com.alibaba.fastjson.JSONObject
+//								.toJSONString(loginResult);
+//						System.out.println("jsonObject  = " + jsonObject);
+//						pushMsg(jsonObject);
+//					}
 
 				} else if ("shop".equals(info)) { // 获取所有种子信息----商店
 					

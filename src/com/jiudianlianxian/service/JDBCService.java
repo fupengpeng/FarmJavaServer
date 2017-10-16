@@ -21,9 +21,18 @@ import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
+import javax.swing.RepaintManager;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.concurrent.FutureCallback;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -56,16 +65,16 @@ import com.jiudianlianxian.utils.HttpUtil;
  *
  */
 public class JDBCService {
-	
+
 	/**
 	 * 
 	 * @Description: 打开仓库
 	 * @param userId
 	 * @return
 	 */
-	public OpenWarehouseResultData openWarehouse(Long userId){
+	public OpenWarehouseResultData openWarehouse(Long userId) {
 		OpenWarehouseResultData openWarehouseResultData = new OpenWarehouseResultData();
-		
+
 		return openWarehouseResultData;
 	}
 
@@ -309,7 +318,6 @@ public class JDBCService {
 		}
 
 	}
-
 
 	/**
 	 * 
@@ -717,15 +725,17 @@ public class JDBCService {
 	 * @param code
 	 * @return
 	 */
-	public User WeiXinlogin(String code) {
+	public void WeiXinlogin(String code, User user) {
 		System.out.println("调用微信登录方法WeiXinlogin");
-		User user = new User();
 
 		String url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxa8fb492572709521&secret=3117081dbe26f23ffbf84b5e96472f53&code="
 				+ code + "&grant_type=authorization_code";
+		
 		HttpUtil.requestData(url, new HttpCallBackListener() {
+
 			@Override
 			public void onFinish(String respose) {
+
 				// 处理请求
 				if (respose != null) {
 					System.out.println("获取access_token  json = " + respose);
@@ -743,9 +753,8 @@ public class JDBCService {
 					try {
 						// 查询数据库,获取上述uid对应的数据
 						while (rs.next()) {
-							System.out.println("sssssssssssssssssssssssss");
+							System.out.println("遍历数据库查询到的数据");
 							user.setUserId(rs.getLong(1));
-
 							user.setUserNickName(rs.getString(2));
 							user.setUserImage(rs.getString(3));
 							user.setUserGold(rs.getLong(4));
@@ -762,78 +771,224 @@ public class JDBCService {
 								JDBCUtil.getConnection());
 					}
 
-					if (!bb) {
+					if (bb) {
+						System.out.println("数据库查询到用户，无需再次请求，直接得到用户 = " + user);
 						
+						
+
+					} else {
 						System.out.println("wenti   02  ----");
 						String url = "https://api.weixin.qq.com/sns/userinfo?access_token="
 								+ access_token + "&openid=" + openid;
-						HttpUtil.requestData(url, new HttpCallBackListener() {
-							@Override
-							public void onFinish(String respose) {
-								// 处理请求
-								if (respose != null) {
-									System.out.println("获取到用户信息json  = "
-											+ respose);
-									analysisGetUnionID(respose);
-									System.out
-											.println("nickname = " + nickname);
+						HttpUtil.requestData(url, 
+								new HttpCallBackListener() {
+									@Override
+									public void onFinish(String respose) {
+										// 处理请求
+										if (respose != null) {
+											System.out
+													.println("获取到用户信息json  = "
+															+ respose);
+											analysisGetUnionID(respose);
+											System.out.println("nickname = "
+													+ nickname);
 
-									Long userGold = (long) 5000;
-									Long userExperience = (long) 500;
-									String sql3 = "INSERT INTO farm_user("
-											+ "userNickName,userImage,userGold,openid,userExperience)"
-											+ "VALUES('" + nickname + "','"
-											+ headimgurl + "'," + userGold
-											+ ",'" + openid + "',"
-											+ userExperience + ") ";
-									System.out.println("sql3====" + sql3);
+											Long userGold = (long) 5000;
+											Long userExperience = (long) 500;
+											String sql3 = "INSERT INTO farm_user("
+													+ "userNickName,userImage,userGold,openid,userExperience)"
+													+ "VALUES('"
+													+ nickname
+													+ "','"
+													+ headimgurl
+													+ "',"
+													+ userGold
+													+ ",'"
+													+ openid
+													+ "',"
+													+ userExperience
+													+ ") ";
+											System.out.println("sql3===="
+													+ sql3);
 
-									try {
-										user.setUserId(JDBCUtil
-												.executeUpdateGetId(sql3));
-										user.setUserNickName(nickname);
-										user.setUserImage(headimgurl);
-										user.setUserGold(userGold);
-										user.setOpenid(openid);
-										user.setUserExperience(userExperience);
-										System.out
-												.println("刚刚插入数据的id ---  11 = "
+											try {
+												user.setUserId(JDBCUtil
+														.executeUpdateGetId(sql3));
+												user.setUserNickName(nickname);
+												user.setUserImage(headimgurl);
+												user.setUserGold(userGold);
+												user.setOpenid(openid);
+												user.setUserExperience(userExperience);
+												System.out.println("刚刚插入数据的id ---  11 = "
 														+ user.getUserId());
 
-									} catch (Exception e) {
-										e.printStackTrace();
+											} catch (Exception e) {
+												e.printStackTrace();
+											}
+											System.out.println("网络请求到用户数据  = "
+													+ user);
+										} else {
+											System.out
+													.println("获取到用户信息的json为空  = "
+															+ user);
+										}
 									}
 
-								} else {
-									System.out.println("获取到用户信息的json为空");
-								}
+									@Override
+									public void onError(Exception e) {
+										// 处理异常
+										System.out
+												.println(" 获取到用户信息的网络请求失败 ，给客户端提示 = "
+														+ user);
 
-							}
-
-							@Override
-							public void onError(Exception e) {
-								// 处理异常
-								System.out.println(" 获取到用户信息的网络请求失败 ，给客户端提示");
-							}
-						});
-
+									}
+								});
 					}
 
 				} else {
-					System.out.println("获取access_token 的json为空");
+					System.out.println("获取access_token 的json为空 = " + user);
 				}
-
 			}
 
 			@Override
 			public void onError(Exception e) {
 				// 处理异常
-				System.out.println("获取access_token 的网络请求失败,给客户端提示 ");
+				System.out.println("获取access_token 的网络请求失败,给客户端提示  = " + user);
+
 			}
 		});
 
-		return user;
+		System.out.println("请求导数据，返回用户数据---- = " + user);
 
+	}
+
+	public User weixin(String code) {
+		
+		
+		
+		
+		
+		
+		System.out.println("调用微信登录方法WeiXinlogin");
+
+		String url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxa8fb492572709521&secret=3117081dbe26f23ffbf84b5e96472f53&code="
+				+ code + "&grant_type=authorization_code";
+		User user = new User();
+		
+		
+		HttpUtil.resquestData(url, new HttpCallBackListener() {
+			
+			@Override
+			public void onFinish(String response) {
+				if (response.toString() != null) {
+					
+					 System.out.println("获取access_token  json = " + response.toString());
+					 analysisGetAndRefreshAccess_tokenSuccess(response.toString());
+					 System.out.println("access_token = " + access_token);
+					
+					 // 查询数据库
+					 // 看看用户是否已经使用此微信账号登陆过，登录过则直接使用数据库数据，否则在请求微信服务器，获取新的用户数据
+					 boolean bb = false;
+					 String sql = "select * from farm_user where openid='"
+					 + openid + "'";
+					 System.out.println("sql = " + sql);
+					 ResultSet rs = JDBCUtil.executeQuery(sql);
+					
+					 try {
+					 // 查询数据库,获取上述uid对应的数据
+					 while (rs.next()) {
+					 System.out.println("遍历数据库查询到的数据");
+					 user.setUserId(rs.getLong(1));
+					 user.setUserNickName(rs.getString(2));
+					 user.setUserImage(rs.getString(3));
+					 user.setUserGold(rs.getLong(4));
+					 user.setUserExperience(rs.getLong(6));
+					 bb = true;
+					
+					 }
+					 } catch (SQLException e) {
+					 // TODO Auto-generated catch block
+					 System.out.println("wenti  01  ----");
+					 e.printStackTrace();
+					 } finally {
+					 JDBCUtil.close(rs, JDBCUtil.getPs(),
+					 JDBCUtil.getConnection());
+					 }
+					
+					 if (bb) {
+					 System.out.println("数据库查询到用户，无需再次请求，直接得到用户 = " + user);
+					
+					 } else {
+					 System.out.println("数据库未查询到用户，再次请求，直接得到用户 = " + user);
+					
+					 }
+				}else {
+					System.out.println("请求数据为空");
+				}
+				
+				System.out.println("请求成功");
+				
+			}
+			
+			@Override
+			public void onError(Exception e) {
+				System.out.println("请求失败    == " + e);
+				
+			}
+		});
+					
+
+
+
+		// // 处理请求
+		// if (sb.toString() != null) {
+		// System.out.println("获取access_token  json = " + sb.toString());
+		// analysisGetAndRefreshAccess_tokenSuccess(sb.toString());
+		// System.out.println("access_token = " + access_token);
+		//
+		// // 查询数据库
+		// // 看看用户是否已经使用此微信账号登陆过，登录过则直接使用数据库数据，否则在请求微信服务器，获取新的用户数据
+		// boolean bb = false;
+		// String sql = "select * from farm_user where openid='"
+		// + openid + "'";
+		// System.out.println("sql = " + sql);
+		// ResultSet rs = JDBCUtil.executeQuery(sql);
+		//
+		// try {
+		// // 查询数据库,获取上述uid对应的数据
+		// while (rs.next()) {
+		// System.out.println("遍历数据库查询到的数据");
+		// user.setUserId(rs.getLong(1));
+		// user.setUserNickName(rs.getString(2));
+		// user.setUserImage(rs.getString(3));
+		// user.setUserGold(rs.getLong(4));
+		// user.setUserExperience(rs.getLong(6));
+		// bb = true;
+		//
+		// }
+		// } catch (SQLException e) {
+		// // TODO Auto-generated catch block
+		// System.out.println("wenti  01  ----");
+		// e.printStackTrace();
+		// } finally {
+		// JDBCUtil.close(rs, JDBCUtil.getPs(),
+		// JDBCUtil.getConnection());
+		// }
+		//
+		// if (bb) {
+		// System.out.println("数据库查询到用户，无需再次请求，直接得到用户 = " + user);
+		//
+		// } else {
+		// System.out.println("数据库未查询到用户，再次请求，直接得到用户 = " + user);
+		//
+		// }
+		//
+		// } else {
+		// System.out.println("获取access_token 的json为空 = " + user);
+		// }
+
+
+		return user;
 	}
 
 	/**

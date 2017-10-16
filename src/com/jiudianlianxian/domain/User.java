@@ -88,6 +88,14 @@ public class User {
 	public void setOpenid(String openid) {
 		this.openid = openid;
 	}
+	@Override
+	public String toString() {
+		return "User [userId=" + userId + ", userNickName=" + userNickName
+				+ ", userImage=" + userImage + ", userGold=" + userGold
+				+ ", userExperience=" + userExperience + ", openid=" + openid
+				+ ", userSeeds=" + userSeeds + ", userLands=" + userLands
+				+ ", userFruits=" + userFruits + "]";
+	}
 	
 	
 	
