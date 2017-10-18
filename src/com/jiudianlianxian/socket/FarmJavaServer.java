@@ -36,6 +36,7 @@ public class FarmJavaServer extends ServerSocket {
     	//向用户发送消息
         new Thread(new SendClientMessage(threadList, msgQueue)).start(); // 开启向客户端发送消息的线程  
  
+        
         System.out.println("load-----");
         while (true) {  
             // server尝试接收其他Socket的连接请求，server的accept方法是阻塞式的  

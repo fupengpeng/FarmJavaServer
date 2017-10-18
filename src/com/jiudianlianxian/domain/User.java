@@ -27,6 +27,12 @@ public class User {
 	private Long userExperience;
 	//openid  微信用户唯一标识
 	private String openid;
+	private int sex;
+	private String province;
+	private String city;
+	private String unionid;
+	private String[] privilege ;
+	private String country;
 	//用户种子集合
 	private Set<Seed> userSeeds = new HashSet<Seed>();
 	//用户土地集合
@@ -34,6 +40,44 @@ public class User {
 	//用户果实集合
 	private Set<Fruit> userFruits = new HashSet<Fruit>();
 	
+	
+	
+	public String getCountry() {
+		return country;
+	}
+	public void setCountry(String country) {
+		this.country = country;
+	}
+	public int getSex() {
+		return sex;
+	}
+	public void setSex(int sex) {
+		this.sex = sex;
+	}
+	public String getProvince() {
+		return province;
+	}
+	public void setProvince(String province) {
+		this.province = province;
+	}
+	public String getCity() {
+		return city;
+	}
+	public void setCity(String city) {
+		this.city = city;
+	}
+	public String getUnionid() {
+		return unionid;
+	}
+	public void setUnionid(String unionid) {
+		this.unionid = unionid;
+	}
+	public String[] getPrivilege() {
+		return privilege;
+	}
+	public void setPrivilege(String[] privilege) {
+		this.privilege = privilege;
+	}
 	public Long getUserId() {
 		return userId;
 	}

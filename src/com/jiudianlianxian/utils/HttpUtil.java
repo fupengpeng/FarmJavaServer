@@ -68,6 +68,17 @@ public class HttpUtil {
 	    }
 	 
 	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
 	 public static void resquestData(final String url , final HttpCallBackListener listener){
 		 
 

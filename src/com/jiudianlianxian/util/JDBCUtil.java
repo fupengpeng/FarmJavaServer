@@ -140,18 +140,10 @@ public class JDBCUtil {
 		try {
 			// 创建一个ps
 			ct = getConnection();
-			ps = ct.prepareStatement(sql);
+			ps = ct.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
 			System.out.println("sql=="+sql);
 			// 执行
 			ps.executeUpdate();
-			
-			
-			//执行插入语句时，要获取自动插入的id使用如下方法
-			rs = ps.getGeneratedKeys();  //获取自动生成的键值
-			rs.next();
-			System.out.println(rs.getInt(1));  //得到键值并输出
-			
-			
 		} catch (SQLException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e.getMessage());
@@ -160,34 +152,12 @@ public class JDBCUtil {
 		}
 
 	}
-	
-	// /**
-	// *
-	// * Description: 根据给定的uid刪除用戶----调用executeUpdate方法实现操作
-	// * @param uid
-	// * @return
-	// */
-	// public boolean delUser(String uid){
-	// boolean b = true;
-	// String sql = "delete from user where uid = '"+uid+"'";
-	// try {
-	// System.out.println("uid---"+uid);
-	// SqlHelper.executeUpdate(sql);
-	// } catch (Exception e) {
-	// b = false;
-	// e.printStackTrace();
-	// }
-	// return b;
-	// }
-	
-	// insert之后获取插入数据的id
-	// sql 格式：update 表名 set 字段名=？ where 字段=？
 	public static Long executeUpdateGetId(String sql) {
 		Long id = null ; 
 		try {
 			// 创建一个ps
 			ct = getConnection();
-			ps = ct.prepareStatement(sql);
+			ps = ct.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
 			System.out.println("sql=="+sql);
 			// 执行
 			ps.executeUpdate();
