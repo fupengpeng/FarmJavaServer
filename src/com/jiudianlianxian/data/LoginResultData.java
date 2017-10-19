@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.jiudianlianxian.domain.Land;
+import com.jiudianlianxian.domain.LandData;
 import com.jiudianlianxian.domain.User;
 
 public class LoginResultData {
 	
 	private User user = new User();
-	private List<Land> lands = new ArrayList<Land>();
+	private List<LandData> LandDatas = new ArrayList<LandData>();
 	
 	public User getUser() {
 		return user;
@@ -17,12 +18,10 @@ public class LoginResultData {
 	public void setUser(User user) {
 		this.user = user;
 	}
-	public List<Land> getLands() {
-		return lands;
+	public List<LandData> getLandDatas() {
+		return LandDatas;
 	}
-	public void setLands(List<Land> lands) {
-		this.lands = lands;
+	public void setLandDatas(List<LandData> landDatas) {
+		LandDatas = landDatas;
 	}
-	
-
 }

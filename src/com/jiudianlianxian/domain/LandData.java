@@ -14,23 +14,19 @@ import java.util.Set;
  * @date 2017年9月26日 上午10:36:51
  *
  */
-public class Land {
+public class LandData {
 	//土地id，主键
 	private Long landId;
 	//土地名称
 	private String landName; 
 	/**
 	 * 土地状态
-	 *     1：未开垦
+	 *     1：土地种植，landSeed有值，为种植的种子对象
 	 *     2：未种植，已开垦
-	 *     3：土地种植，landSeed有值，为种植的种子对象
+	 *     3：未开垦
 	 */
 	private String landState;
-	
-	private User landUser ;
-	//土地种植时，地里种植的种子,用set集合，实际只有一个
-//	private Seed landSeed ;
-	private Set<Seed> landSeeds = new HashSet<Seed>();
+	private String seedName;
 	
 	
 	public Long getLandId() {
@@ -51,28 +47,13 @@ public class Land {
 	public void setLandState(String landState) {
 		this.landState = landState;
 	}
-	public User getLandUser() {
-		return landUser;
+
+	public String getSeedName() {
+		return seedName;
 	}
-	public void setLandUser(User landUser) {
-		this.landUser = landUser;
+	public void setSeedName(String seedName) {
+		this.seedName = seedName;
 	}
-//	public Seed getLandSeed() {
-//		return landSeed;
-//	}
-//	public void setLandSeed(Seed landSeed) {
-//		this.landSeed = landSeed;
-//	}
-	public Set<Seed> getLandSeeds() {
-		return landSeeds;
-	}
-	public void setLandSeeds(Set<Seed> landSeeds) {
-		this.landSeeds = landSeeds;
-	}
-	
-	
-	
-	
 
 	
 	

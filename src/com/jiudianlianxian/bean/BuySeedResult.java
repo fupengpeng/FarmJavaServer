@@ -2,7 +2,6 @@ package com.jiudianlianxian.bean;
 
 import com.jiudianlianxian.base.RequestResponseBase;
 import com.jiudianlianxian.data.BuySeedResultData;
-import com.jiudianlianxian.data.LoginResultData;
 
 
 /**

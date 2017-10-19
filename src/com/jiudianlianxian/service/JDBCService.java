@@ -1,59 +1,29 @@
 package com.jiudianlianxian.service;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.net.URLConnection;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.CountDownLatch;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
 
-import javax.swing.RepaintManager;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.concurrent.FutureCallback;
-import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
-import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.jiudianlianxian.bean.FruitRipeResult;
 import com.jiudianlianxian.data.BuySeedResultData;
-import com.jiudianlianxian.data.FruitRipeResultData;
 import com.jiudianlianxian.data.GetLandMsgResultData;
 import com.jiudianlianxian.data.GetSeedMsgResultData;
 import com.jiudianlianxian.data.HarvestResultData;
-import com.jiudianlianxian.data.LoginResultData;
 import com.jiudianlianxian.data.OpenWarehouseResultData;
 import com.jiudianlianxian.data.PlantResultData;
 import com.jiudianlianxian.data.SeedMsgAllResultData;
+import com.jiudianlianxian.data.SellFruitResultData;
+import com.jiudianlianxian.domain.Fruit;
 import com.jiudianlianxian.domain.Land;
-import com.jiudianlianxian.domain.RipeMessage;
 import com.jiudianlianxian.domain.Seed;
 import com.jiudianlianxian.domain.User;
 import com.jiudianlianxian.util.JDBCUtil;
-import com.jiudianlianxian.utils.HttpCallBackListener;
-import com.jiudianlianxian.utils.HttpUtil;
 
 /**
  * 
@@ -65,6 +35,116 @@ import com.jiudianlianxian.utils.HttpUtil;
  *
  */
 public class JDBCService {
+	String seedState1 = "1";    //种子状态----商店
+	String seedState2 = "2";    //种子状态----背包
+	String seedState3 = "3";    //种子状态----种植
+	String landState1 = "1";    //土地状态----未开垦
+	String landState2 = "2";    //土地状态----未种植，已开垦
+	String landState3 = "3";    //土地状态----已种植，此时土地持有一个种子对象
+	
+	JSONObject jsonObject;
+	String access_token = null;
+	int expires_in = 0;
+	String refresh_token = null;
+	String openid = null;
+	String scope = null;
+
+	int errcode = 0;
+	String errmsg = null;
+
+	String nickname = null;
+	int sex = 0;
+	String province = null;
+	String city = null;
+	String country = null;
+	String headimgurl = null;
+	JSONArray jsonArray = null;
+	String[] privilege = null;
+	String unionid = null;
+	
+	/**
+	 * 
+	 * @Description: 出售果实
+	 * @param userId
+	 * @param fruitId
+	 * @param fruitNumber
+	 * @return
+	 */
+	public SellFruitResultData sellFruit(Long userId, Long fruitId,
+			Long fruitNumber) {
+		SellFruitResultData sellFruitResultData = new SellFruitResultData();  //出售果实返回数据
+		Long userGold = null;  //用户出售果实之前的金币数量
+		Fruit fruit = new Fruit();  //查询果实表得到的数据
+		
+		// 根据传入果实id查询果实剩余数量，判断查询到的数量是否大于传入的数量，大于的话，删除数据库果实，改变用户所得金币，返回给客户端金币，和出售果实信息
+		// 1.根据传入的fruitId查询farm_fruit表，获取Fruit对象（包含数据）
+		String sql1 = "select * from farm_fruit where fruitId=" + fruitId;
+		System.out.println("sql1 = " + sql1);
+		ResultSet rs1 = JDBCUtil.executeQuery(sql1);
+		try {
+			while (rs1.next()) {
+				fruit.setFruitId(rs1.getLong(1));
+				fruit.setFruitName(rs1.getString(2));
+				fruit.setFruitNumber(rs1.getLong(3));
+				fruit.setFruitSellingPrice(rs1.getLong(4));
+				fruit.setFruitImage(rs1.getString(5));
+
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			JDBCUtil.close(rs1, JDBCUtil.getPs(), JDBCUtil.getConnection());
+		}
+
+		// 2.判断查询到的fruit数量是否比传入的果实数量大
+		if (fruit.getFruitNumber() >= fruitNumber) {
+			// 数据库果实数量大于后等于传入的数量
+			// 3.获取用户出售果实之前的金币数量
+			String sql2 = "select * from farm_user where userId=" + userId;
+			System.out.println("sql2 = " + sql2);
+			ResultSet rs2 = JDBCUtil.executeQuery(sql2);
+			try {
+				while (rs2.next()) {
+					userGold = rs2.getLong(4);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				JDBCUtil.close(rs2, JDBCUtil.getPs(), JDBCUtil.getConnection());
+			}
+			
+			// 4.改变果实数量
+			System.out.println("果实本身数量 = " + fruit.getFruitNumber());
+			fruit.setFruitNumber(fruit.getFruitNumber() - fruitNumber);
+			System.out.println("出售果实后果实fruitNumber = " + fruit.getFruitNumber());
+			String updateFruitNumber = "update farm_fruit set fruitNumber="+ (fruit.getFruitNumber() - fruitNumber) +" WHERE fruitId="
+					+ fruitId;
+			// 5.改变用户金币值
+			System.out.println("用户本身金币userGold01 = " + userGold);
+			Long usergold = fruitNumber * fruit.getFruitSellingPrice() + userGold;
+			System.out.println("用户出售果实所得金币  == " + (fruitNumber * fruit.getFruitSellingPrice()));
+			System.out.println( "用户出售果实后userGold = " + usergold);
+			String updateUserGold = "update farm_user set userGold="
+					+ (fruitNumber*fruit.getFruitSellingPrice() + userGold)
+					+ " WHERE userId=" + userId;
+			String[] sql = {  updateFruitNumber,updateUserGold };
+			try {
+				JDBCUtil.executeUpdate(sql);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			// 6.设置返回数据，并返回
+			sellFruitResultData.setFruit(fruit);
+			sellFruitResultData.setUserGold(fruitNumber*fruit.getFruitSellingPrice() + userGold);
+			
+			return sellFruitResultData;
+		} else {
+			// 数据库果实数量小雨传入的数量
+			return sellFruitResultData;
+		}
+
+		
+	}
 
 	/**
 	 * 
@@ -74,7 +154,28 @@ public class JDBCService {
 	 */
 	public OpenWarehouseResultData openWarehouse(Long userId) {
 		OpenWarehouseResultData openWarehouseResultData = new OpenWarehouseResultData();
-
+		// 根据userId查询farm_fruit表，获取其果实信息，输出
+		List<Fruit> fruits = new ArrayList<Fruit>();    //果实列表
+		
+		String sql2 = "select * from farm_fruit where userId=" + userId;
+		System.out.println("sql2 = " + sql2);
+		ResultSet rs2 = JDBCUtil.executeQuery(sql2);
+		try {
+			while (rs2.next()) {
+				Fruit fruit = new Fruit();
+				fruit.setFruitId(rs2.getLong(1));
+				fruit.setFruitName(rs2.getString(2));
+				fruit.setFruitNumber(rs2.getLong(3));
+				fruit.setFruitSellingPrice(rs2.getLong(4));
+				fruit.setFruitImage(rs2.getString(5));
+				fruits.add(fruit);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			JDBCUtil.close(rs2, JDBCUtil.getPs(), JDBCUtil.getConnection());
+		}
+		openWarehouseResultData.setFruits(fruits);
 		return openWarehouseResultData;
 	}
 
@@ -89,7 +190,7 @@ public class JDBCService {
 		HarvestResultData harvestResultData = new HarvestResultData();
 
 		// 1.根据传入土地id查询land_seed表，获取seedId
-		Seed seed = new Seed();
+		Seed seed = new Seed();   //种子对象，接收在land_seed查询到的seedId
 		String sql1 = "select * from land_seed where landId=" + landId;
 		System.out.println("sql1 = " + sql1);
 		ResultSet rs1 = JDBCUtil.executeQuery(sql1);
@@ -126,7 +227,7 @@ public class JDBCService {
 		}
 
 		// 3.根据传入 userId查询farm_user表，获取用户经验值
-		Long userExperience = null;
+		Long userExperience = null;    //收获前用户经验值
 		String sql3 = "select * from farm_user where userId=" + userId;
 		System.out.println("sql3 = " + sql3);
 		ResultSet rs3 = JDBCUtil.executeQuery(sql3);
@@ -152,19 +253,31 @@ public class JDBCService {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			
+			
 			// 4-2.删除种子表中种植在土地上的种子
 			String deleteSeedStateThree = "delete from farm_seed WHERE seedId="
 					+ seed.getSeedId();
+			
 			// 4-3.改变土地状态
-			String updateLandState = "update farm_land set landState='2' WHERE landId="
+			String updateLandState = "update farm_land set landState='" + landState2  + "' WHERE landId="
 					+ landId;
 			// 4-4.改变用户经验值
 			String updateUserExperience = "update farm_user set userExperience="
 					+ (userExperience + seed.getSeedExperience())
 					+ " WHERE userId=" + userId;
+
+			String[] sql = { deleteSeedStateThree, updateLandState,
+					updateUserExperience };
+			try {
+				JDBCUtil.executeUpdate(sql);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			
 			// 4-5.在果实列表添加果实
-			// TODO     
- 			String insertFruit = "insert into farm_fruit (fruitName,fruitNumber,fruitSellingPrice,fruitImage,userId) VALUES ('"
+			String insertFruit = "insert into farm_fruit (fruitName,fruitNumber,fruitSellingPrice,fruitImage,userId) VALUES ('"
 					+ seed.getSeedName()
 					+ "',"
 					+ seed.getSeedYield()
@@ -172,17 +285,16 @@ public class JDBCService {
 					+ seed.getSeedFruitSellingPrice()
 					+ ",'"
 					+ seed.getSeedImage() + "'," + userId + ")";
-			
-			String[] sql = { deleteSeedStateThree, updateLandState,
-					updateUserExperience, insertFruit };
+			System.out.println("insertFruit====" + insertFruit);
 			try {
-				JDBCUtil.executeUpdate(sql);
+				JDBCUtil.executeUpdate(insertFruit);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-
+			
+			//5.设置返回数据
 			harvestResultData.setLandId(landId);
-			harvestResultData.setLandState("2");
+			harvestResultData.setLandState(landState2);
 			harvestResultData.setSeedExperience(seed.getSeedExperience());
 			harvestResultData.setUserId(userId);
 			harvestResultData.setUserExperience(userExperience
@@ -207,7 +319,7 @@ public class JDBCService {
 	 */
 	public PlantResultData plant(Long userId, Long seedId, Long landId) {
 		PlantResultData plantResultData = new PlantResultData();
-		String landState = "1";
+
 		// 1.查询种子列表，获取此种子信息
 		Seed seed = new Seed(); // 传入seedId的种子信息
 		String sql1 = "select * from farm_seed where seedId=" + seedId;
@@ -228,7 +340,7 @@ public class JDBCService {
 				seed.setSeedImage(rs1.getString(11));
 				seed.setSeedNumber(rs1.getInt(12));
 				seed.setSeedPlantTime(rs1.getLong(14));
-				
+
 				System.out.println("传入seedId的种子数量    seedNumber = "
 						+ seed.getSeedNumber());
 			}
@@ -262,8 +374,8 @@ public class JDBCService {
 			}
 
 			// 4.判断此土地状态是否为2（已开垦，未种植），给予客户提示
-			if (landState.equals(land.getLandState())
-					|| "3".equals(land.getLandState())) {
+			if (landState1.equals(land.getLandState())
+					|| landState3.equals(land.getLandState())) {
 				// 土地状态为1或者3，即土地已种植或者未开垦，提示用户不可以种植。
 				return plantResultData;
 			} else {
@@ -287,10 +399,27 @@ public class JDBCService {
 				String sql5 = "INSERT INTO farm_seed("
 						+ "seedName,seedState,seedGrowthTime,seedBuyPrice,seedSellingPrice,"
 						+ "seedExperience,seedYield,seedFruitSellingPrice,seedType,seedImage,"
-						+ "seedNumber,userId,seedPlantTime)" + "VALUES("
-						+ "'"+ seed.getSeedName() +"','" + 3 + "',"+ seed.getSeedGrowthTime() + "," + seed.getSeedBuyPrice() + ","+ seed.getSeedSellingPrice() + ","
-						+ seed.getSeedExperience() + "," + seed.getSeedYield() + "," + seed.getSeedFruitSellingPrice() + "," + seed.getSeedType() +",'"+ seed.getSeedImage() + "',"
-						+ 1 + "," + userId + "," + seedPlantTime + ") ";
+						+ "seedNumber,userId,seedPlantTime)" + "VALUES(" + "'"
+						+ seed.getSeedName()
+						+ "','"
+						+ landState3
+						+ "',"
+						+ seed.getSeedGrowthTime()
+						+ ","
+						+ seed.getSeedBuyPrice()
+						+ ","
+						+ seed.getSeedSellingPrice()
+						+ ","
+						+ seed.getSeedExperience()
+						+ ","
+						+ seed.getSeedYield()
+						+ ","
+						+ seed.getSeedFruitSellingPrice()
+						+ ","
+						+ seed.getSeedType()
+						+ ",'"
+						+ seed.getSeedImage()
+						+ "'," + 1 + "," + userId + "," + seedPlantTime + ") ";
 				System.out.println("sql5====" + sql5);
 				long lastid = 0;
 				try {
@@ -301,19 +430,18 @@ public class JDBCService {
 				}
 
 				// 5-1-3.在land_seed表中添加获取到的seedId种子和传入的landId土地关系
-				boolean b = true;
+				
 				String sql = "INSERT INTO land_seed(" + "landId,seedId) "
 						+ "VALUES(" + landId + "," + lastid + ") ;";
 				System.out.println("sql====" + sql);
 				try {
 					JDBCUtil.executeUpdate(sql);
 				} catch (Exception e) {
-					b = false;
 					e.printStackTrace();
 				}
 				// 5-2.改变土地状态
 				String sql3 = "UPDATE farm_land SET " + "landState='"
-						+ landState + "' " + "WHERE landId=" + landId + ";";
+						+ landState1 + "' " + "WHERE landId=" + landId + ";";
 				System.out.println("改变id为landId的土地状态        landState =  "
 						+ land.getLandState());
 				System.out.println("sql4 = " + sql3);
@@ -355,7 +483,7 @@ public class JDBCService {
 				land.setLandName(rs.getString(2));
 				land.setLandState(rs.getString(3));
 				lands.add(land);
-				
+
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -388,8 +516,7 @@ public class JDBCService {
 		ResultSet rs1 = JDBCUtil.executeQuery(sql1);
 		try {
 			while (rs1.next()) {
-				seedTotalPrices = seedNumber * (rs1
-						.getInt(5));
+				seedTotalPrices = seedNumber * (rs1.getInt(5));
 				seed.setSeedName(rs1.getString(2));
 				seed.setSeedGrowthTime(rs1.getLong(4));
 				seed.setSeedBuyPrice(rs1.getLong(5));
@@ -400,7 +527,8 @@ public class JDBCService {
 				seed.setSeedType(rs1.getLong(10));
 				seed.setSeedImage(rs1.getString(11));
 				System.out.println("购买种子所需金币    seedTotalPrices = "
-						+ seedTotalPrices   + "    SeedName  ==  "  + rs1.getString(2));
+						+ seedTotalPrices + "    SeedName  ==  "
+						+ rs1.getString(2));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -429,8 +557,8 @@ public class JDBCService {
 			// 3.金币够，则修改用户的种子信息和金币信息
 			// 3-1.修改用户的金币数量
 			String sql4 = "UPDATE farm_user SET userGold="
-					+ (userGold - seedTotalPrices)  + " WHERE userId="
-					+ userId + ";";
+					+ (userGold - seedTotalPrices) + " WHERE userId=" + userId
+					+ ";";
 			System.out.println("设置用户金币剩余额  price2-price1 = "
 					+ (userGold - seedTotalPrices));
 			System.out.println("sql4 = " + sql4);
@@ -443,8 +571,9 @@ public class JDBCService {
 			// 3-2.查询种子表，用户是否购买过名称为seedName的种子
 			Long seedIdStateTwo = null; // 已购买的种子id
 			Long seedNumberStateTwo = null; // 已购买的种子数量
+			
 			String sql3 = "select * from farm_seed where userId=" + userId
-					+ " and seedState='" + 2 + "' and seedName='"
+					+ " and seedState='" + seedState2 + "' and seedName='"
 					+ seed.getSeedName() + "'";
 			System.out.println("sql3 = " + sql3);
 			b = false;
@@ -494,7 +623,7 @@ public class JDBCService {
 						+ "seedImage,seedNumber,userId" + ") values('"
 						+ seed.getSeedName()
 						+ "','"
-						+ 2
+						+ seedState2
 						+ "',"
 						+ seed.getSeedGrowthTime()
 						+ ","
@@ -567,7 +696,7 @@ public class JDBCService {
 
 		// 2.查询已购买种子信息，保存到返回数据实体中
 		String sql = "select * from farm_seed where userId=" + userId
-				+ " and seedState='2' ";
+				+ " and seedState='"+ seedState2 +"' ";
 		System.out.println("sql = " + sql);
 		ResultSet rs = JDBCUtil.executeQuery(sql);
 		List<Seed> seeds = new ArrayList<Seed>();
@@ -610,13 +739,14 @@ public class JDBCService {
 	public SeedMsgAllResultData getSeedMsgAll() {
 		SeedMsgAllResultData seedMsgAllResultData = new SeedMsgAllResultData();
 		List<Seed> seeds = new ArrayList<Seed>();
-		for (int i = 0; i < 10000; i++) {
-			Seed seed = new Seed();
+		
+			
 			// 查询数据库,获取状态为 1 的所有种子
 			String sql = "select * from farm_seed where seedState='1'";
 			ResultSet rs = JDBCUtil.executeQuery(sql);
 			try {
 				while (rs.next()) {
+					Seed seed = new Seed();
 					seed.setSeedId(rs.getLong(1));
 					seed.setSeedName(rs.getString(2));
 					seed.setSeedState(rs.getString(3));
@@ -628,37 +758,17 @@ public class JDBCService {
 					seed.setSeedFruitSellingPrice(rs.getLong(9));
 					seed.setSeedType(rs.getLong(10));
 					seed.setSeedImage(rs.getString(11));
+					seeds.add(seed);
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
 			} finally {
 				JDBCUtil.close(rs, JDBCUtil.getPs(), JDBCUtil.getConnection());
 			}
-			seeds.add(seed);
-		}
+		
 		seedMsgAllResultData.setSeeds(seeds);
 		return seedMsgAllResultData;
 	}
-
-	JSONObject jsonObject;
-	String access_token = null;
-	int expires_in = 0;
-	String refresh_token = null;
-	String openid = null;
-	String scope = null;
-
-	int errcode = 0;
-	String errmsg = null;
-
-	String nickname = null;
-	int sex = 0;
-	String province = null;
-	String city = null;
-	String country = null;
-	String headimgurl = null;
-	JSONArray jsonArray = null;
-	String[] privilege = null;
-	String unionid = null;
 
 	/**
 	 * 
@@ -744,308 +854,7 @@ public class JDBCService {
 	public void WeiXinlogin(String code, User user) {
 		System.out.println("调用微信登录方法WeiXinlogin");
 
-		String url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxa8fb492572709521&secret=3117081dbe26f23ffbf84b5e96472f53&code="
-				+ code + "&grant_type=authorization_code";
-		
-		HttpUtil.requestData(url, new HttpCallBackListener() {
-
-			@Override
-			public void onFinish(String respose) {
-
-				// 处理请求
-				if (respose != null) {
-					System.out.println("获取access_token  json = " + respose);
-					analysisGetAndRefreshAccess_tokenSuccess(respose);
-					System.out.println("access_token = " + access_token);
-
-					// 查询数据库
-					// 看看用户是否已经使用此微信账号登陆过，登录过则直接使用数据库数据，否则在请求微信服务器，获取新的用户数据
-					boolean bb = false;
-					String sql = "select * from farm_user where openid='"
-							+ openid + "'";
-					System.out.println("sql = " + sql);
-					ResultSet rs = JDBCUtil.executeQuery(sql);
-
-					try {
-						// 查询数据库,获取上述uid对应的数据
-						while (rs.next()) {
-							System.out.println("遍历数据库查询到的数据");
-							user.setUserId(rs.getLong(1));
-							user.setUserNickName(rs.getString(2));
-							user.setUserImage(rs.getString(3));
-							user.setUserGold(rs.getLong(4));
-							user.setUserExperience(rs.getLong(6));
-							bb = true;
-
-						}
-					} catch (SQLException e) {
-						// TODO Auto-generated catch block
-						System.out.println("wenti  01  ----");
-						e.printStackTrace();
-					} finally {
-						JDBCUtil.close(rs, JDBCUtil.getPs(),
-								JDBCUtil.getConnection());
-					}
-
-					if (bb) {
-						System.out.println("数据库查询到用户，无需再次请求，直接得到用户 = " + user);
-						
-						
-
-					} else {
-						System.out.println("wenti   02  ----");
-						String url = "https://api.weixin.qq.com/sns/userinfo?access_token="
-								+ access_token + "&openid=" + openid;
-						HttpUtil.requestData(url, 
-								new HttpCallBackListener() {
-									@Override
-									public void onFinish(String respose) {
-										// 处理请求
-										if (respose != null) {
-											System.out
-													.println("获取到用户信息json  = "
-															+ respose);
-											analysisGetUnionID(respose);
-											System.out.println("nickname = "
-													+ nickname);
-
-											Long userGold = (long) 5000;
-											Long userExperience = (long) 500;
-											String sql3 = "INSERT INTO farm_user("
-													+ "userNickName,userImage,userGold,openid,userExperience)"
-													+ "VALUES('"
-													+ nickname
-													+ "','"
-													+ headimgurl
-													+ "',"
-													+ userGold
-													+ ",'"
-													+ openid
-													+ "',"
-													+ userExperience
-													+ ") ";
-											System.out.println("sql3===="
-													+ sql3);
-
-											try {
-												user.setUserId(JDBCUtil
-														.executeUpdateGetId(sql3));
-												user.setUserNickName(nickname);
-												user.setUserImage(headimgurl);
-												user.setUserGold(userGold);
-												user.setOpenid(openid);
-												user.setUserExperience(userExperience);
-												System.out.println("刚刚插入数据的id ---  11 = "
-														+ user.getUserId());
-
-											} catch (Exception e) {
-												e.printStackTrace();
-											}
-											System.out.println("网络请求到用户数据  = "
-													+ user);
-										} else {
-											System.out
-													.println("获取到用户信息的json为空  = "
-															+ user);
-										}
-									}
-
-									@Override
-									public void onError(Exception e) {
-										// 处理异常
-										System.out
-												.println(" 获取到用户信息的网络请求失败 ，给客户端提示 = "
-														+ user);
-
-									}
-								});
-					}
-
-				} else {
-					System.out.println("获取access_token 的json为空 = " + user);
-				}
-			}
-
-			@Override
-			public void onError(Exception e) {
-				// 处理异常
-				System.out.println("获取access_token 的网络请求失败,给客户端提示  = " + user);
-
-			}
-		});
-
 		System.out.println("请求导数据，返回用户数据---- = " + user);
-
-	}
-
-	public User weixin(String code) {
-		
-		
-		
-		
-		
-		
-		System.out.println("调用微信登录方法WeiXinlogin");
-
-		String url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxa8fb492572709521&secret=3117081dbe26f23ffbf84b5e96472f53&code="
-				+ code + "&grant_type=authorization_code";
-		User user = new User();
-		
-		
-		HttpUtil.resquestData(url, new HttpCallBackListener() {
-			
-			@Override
-			public void onFinish(String response) {
-				if (response.toString() != null) {
-					
-					 System.out.println("获取access_token  json = " + response.toString());
-					 analysisGetAndRefreshAccess_tokenSuccess(response.toString());
-					 System.out.println("access_token = " + access_token);
-					
-					 // 查询数据库
-					 // 看看用户是否已经使用此微信账号登陆过，登录过则直接使用数据库数据，否则在请求微信服务器，获取新的用户数据
-					 boolean bb = false;
-					 String sql = "select * from farm_user where openid='"
-					 + openid + "'";
-					 System.out.println("sql = " + sql);
-					 ResultSet rs = JDBCUtil.executeQuery(sql);
-					
-					 try {
-					 // 查询数据库,获取上述uid对应的数据
-					 while (rs.next()) {
-					 System.out.println("遍历数据库查询到的数据");
-					 user.setUserId(rs.getLong(1));
-					 user.setUserNickName(rs.getString(2));
-					 user.setUserImage(rs.getString(3));
-					 user.setUserGold(rs.getLong(4));
-					 user.setUserExperience(rs.getLong(6));
-					 bb = true;
-					
-					 }
-					 } catch (SQLException e) {
-					 // TODO Auto-generated catch block
-					 System.out.println("wenti  01  ----");
-					 e.printStackTrace();
-					 } finally {
-					 JDBCUtil.close(rs, JDBCUtil.getPs(),
-					 JDBCUtil.getConnection());
-					 }
-					
-					 if (bb) {
-					 System.out.println("数据库查询到用户，无需再次请求，直接得到用户 = " + user);
-					
-					 } else {
-					 System.out.println("数据库未查询到用户，再次请求，直接得到用户 = " + user);
-					
-					 }
-				}else {
-					System.out.println("请求数据为空");
-				}
-				
-				System.out.println("请求成功");
-				
-			}
-			
-			@Override
-			public void onError(Exception e) {
-				System.out.println("请求失败    == " + e);
-				
-			}
-		});
-					
-
-
-
-		// // 处理请求
-		// if (sb.toString() != null) {
-		// System.out.println("获取access_token  json = " + sb.toString());
-		// analysisGetAndRefreshAccess_tokenSuccess(sb.toString());
-		// System.out.println("access_token = " + access_token);
-		//
-		// // 查询数据库
-		// // 看看用户是否已经使用此微信账号登陆过，登录过则直接使用数据库数据，否则在请求微信服务器，获取新的用户数据
-		// boolean bb = false;
-		// String sql = "select * from farm_user where openid='"
-		// + openid + "'";
-		// System.out.println("sql = " + sql);
-		// ResultSet rs = JDBCUtil.executeQuery(sql);
-		//
-		// try {
-		// // 查询数据库,获取上述uid对应的数据
-		// while (rs.next()) {
-		// System.out.println("遍历数据库查询到的数据");
-		// user.setUserId(rs.getLong(1));
-		// user.setUserNickName(rs.getString(2));
-		// user.setUserImage(rs.getString(3));
-		// user.setUserGold(rs.getLong(4));
-		// user.setUserExperience(rs.getLong(6));
-		// bb = true;
-		//
-		// }
-		// } catch (SQLException e) {
-		// // TODO Auto-generated catch block
-		// System.out.println("wenti  01  ----");
-		// e.printStackTrace();
-		// } finally {
-		// JDBCUtil.close(rs, JDBCUtil.getPs(),
-		// JDBCUtil.getConnection());
-		// }
-		//
-		// if (bb) {
-		// System.out.println("数据库查询到用户，无需再次请求，直接得到用户 = " + user);
-		//
-		// } else {
-		// System.out.println("数据库未查询到用户，再次请求，直接得到用户 = " + user);
-		//
-		// }
-		//
-		// } else {
-		// System.out.println("获取access_token 的json为空 = " + user);
-		// }
-
-
-		return user;
-	}
-
-	/**
-	 * 
-	 * @Description: 登录返回数据处理
-	 * @param uid
-	 * @return
-	 */
-	public LoginResultData loginResult(User user) {
-		List<Land> lands = new ArrayList<Land>();
-		// Set<Land> lands = new HashSet<Land>();
-		for (int i = 0; i < 10000; i++) {
-			Land land = new Land();
-			String sql = "select * from farm_land where userId="
-					+ user.getUserId();
-			ResultSet rs = JDBCUtil.executeQuery(sql);
-			try {
-				// 查询数据库,获取上述uid对应的数据
-				while (rs.next()) {
-					land.setLandId(rs.getLong(1));
-					land.setLandName(rs.getString(2));
-					land.setLandState(rs.getString(3));
-				}
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} finally {
-				JDBCUtil.close(rs, JDBCUtil.getPs(), JDBCUtil.getConnection());
-			}
-			lands.add(land);
-		}
-		LoginResultData loginResponseData = new LoginResultData();
-		// user.setUserLands(lands);
-
-		loginResponseData.setUser(user);
-		loginResponseData.setLands(lands);
-		String loginResultData = com.alibaba.fastjson.JSONObject
-				.toJSONString(loginResponseData);
-		System.out.println("loginResultData------------  = " + loginResultData);
-
-		return loginResponseData;
 
 	}
 
@@ -1059,7 +868,7 @@ public class JDBCService {
 		GetSeedMsgResultData getSeedMsgResultData = new GetSeedMsgResultData();
 
 		// 1.获取
-		String sql = "select * from farm_seed where seedState='2' userId="
+		String sql = "select * from farm_seed where seedState='" +  seedState2  + "' and userId="
 				+ userId;
 		List<Seed> seeds = new ArrayList<Seed>();
 		System.out.println("sql = " + sql);

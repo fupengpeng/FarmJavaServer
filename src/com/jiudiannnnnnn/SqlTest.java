@@ -39,17 +39,22 @@ import com.jiudianlianxian.bean.GetLandMsgResult;
 import com.jiudianlianxian.bean.GetSeedMsgResult;
 import com.jiudianlianxian.bean.HarvestResult;
 import com.jiudianlianxian.bean.LoginResult;
+import com.jiudianlianxian.bean.OpenWarehouseResult;
 import com.jiudianlianxian.bean.PlantResult;
 import com.jiudianlianxian.bean.SeedMsgAllResult;
+import com.jiudianlianxian.bean.SellFruitResult;
 import com.jiudianlianxian.data.BuySeedResultData;
 import com.jiudianlianxian.data.FruitRipeResultData;
 import com.jiudianlianxian.data.GetLandMsgResultData;
 import com.jiudianlianxian.data.GetSeedMsgResultData;
 import com.jiudianlianxian.data.HarvestResultData;
 import com.jiudianlianxian.data.LoginResultData;
+import com.jiudianlianxian.data.OpenWarehouseResultData;
 import com.jiudianlianxian.data.PlantResultData;
 import com.jiudianlianxian.data.SeedMsgAllResultData;
+import com.jiudianlianxian.data.SellFruitResultData;
 import com.jiudianlianxian.domain.Land;
+import com.jiudianlianxian.domain.LandData;
 import com.jiudianlianxian.domain.RipeMessage;
 import com.jiudianlianxian.domain.Seed;
 import com.jiudianlianxian.domain.User;
@@ -86,49 +91,137 @@ public class SqlTest {
 
 	public static void main(String[] args) {
 		SqlTest sqlTest = new SqlTest();
-//		sqlTest.buy();
-//		sqlTest.plant();
-//		sqlTest.login();
-		sqlTest.harvest();
+		// sqlTest.buy();
+		// sqlTest.plant();
+		 sqlTest.login();
+//		sqlTest.harvest();
+//		sqlTest.warehouse();
+//		sqlTest.parcel();
+//		sqlTest.sell();
 
 	}
 	
-	public void harvest(){
-		// 修改土地状态，种子状态，生成果实修改果实数量
+	public void sell(){
+		// 根据传入果实id查询果实剩余数量，判断查询到的数量是否大于传入的数量，大于的话，删除数据库果实，改变用户所得金币，返回给客户端金币，和出售果实信息
 		Long userId = (long) 1;
-		Long landId = (long) 1;
-
-		HarvestResult harvestResult = new HarvestResult();
-		HarvestResultData harvestResultData = jdbcService
-				.harvest(landId, userId);
-
-		harvestResult.setInfo(info);
-		if (harvestResultData != null) {
-			harvestResult.setCode("1");
-			harvestResult
-					.setHarvestResultData(harvestResultData);
+		Long fruitId = (long) 1;
+		Long fruitNumber = (long) 5;
+		SellFruitResultData sellFruitResultData = jdbcService
+				.sellFruit(userId, fruitId, fruitNumber);
+		
+		SellFruitResult sellFruitResult = new SellFruitResult();
+		sellFruitResult.setInfo(info);
+		if (sellFruitResultData != null) {
+			sellFruitResult.setCode("1");
+			sellFruitResult
+					.setSellFruitResultData(sellFruitResultData);
 			jsonObject = com.alibaba.fastjson.JSONObject
-					.toJSONString(harvestResult);
+					.toJSONString(sellFruitResult);
 			System.out.println("jsonObject  = "
 					+ jsonObject);
 			pushMsg(jsonObject);
 		} else {
-			harvestResult.setCode("0");
-			harvestResult
-					.setHarvestResultData(harvestResultData);
+			sellFruitResult.setCode("0");
+			sellFruitResult
+					.setSellFruitResultData(sellFruitResultData);
 			jsonObject = com.alibaba.fastjson.JSONObject
-					.toJSONString(harvestResult);
+					.toJSONString(sellFruitResult);
 			System.out.println("jsonObject  = "
 					+ jsonObject);
 			pushMsg(jsonObject);
 		}
 	}
+
+	public void parcel(){
+		
+		// 查询背包种子所有信息
+		Long userId = (long) 1;
+		GetSeedMsgResultData getSeedMsgResultData = jdbcService
+				.getSeedMsg(userId);
+		GetSeedMsgResult getSeedMsgResult = new GetSeedMsgResult();
+		getSeedMsgResult.setInfo(info);
+		if (getSeedMsgResultData != null) {
+			getSeedMsgResult.setCode("1");
+			getSeedMsgResult
+					.setGetSeedMsgResultData(getSeedMsgResultData);
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(getSeedMsgResult);
+			System.out.println("jsonObject  = "
+					+ jsonObject);
+			pushMsg(jsonObject);
+		} else {
+			getSeedMsgResult.setCode("0");
+			getSeedMsgResult
+					.setGetSeedMsgResultData(getSeedMsgResultData);
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(getSeedMsgResult);
+			System.out.println("jsonObject  = "
+					+ jsonObject);
+			pushMsg(jsonObject);
+		}
+		
+	}
+	public void warehouse() {
+
+		// 查询果实所有信息
+		Long userId = (long) 1;
+		OpenWarehouseResultData openWarehouseResultData = jdbcService
+				.openWarehouse(userId);
+		OpenWarehouseResult openWarehouseResult = new OpenWarehouseResult();
+		openWarehouseResult.setInfo(info);
+		if (openWarehouseResultData != null) {
+			openWarehouseResult.setCode("1");
+			openWarehouseResult
+					.setOpenWarehouseResultData(openWarehouseResultData);
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(openWarehouseResult);
+			System.out.println("jsonObject  = "
+					+ jsonObject);
+			pushMsg(jsonObject);
+		} else {
+			openWarehouseResult.setCode("0");
+			openWarehouseResult
+					.setOpenWarehouseResultData(openWarehouseResultData);
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(openWarehouseResult);
+			System.out.println("jsonObject  = "
+					+ jsonObject);
+			pushMsg(jsonObject);
+		}
+	}
+
+	public void harvest() {
+		// 修改土地状态，种子状态，生成果实修改果实数量
+		Long userId = (long) 1;
+		Long landId = (long) 1;
+
+		HarvestResult harvestResult = new HarvestResult();
+		HarvestResultData harvestResultData = jdbcService.harvest(landId,
+				userId);
+
+		harvestResult.setInfo(info);
+		if (harvestResultData != null) {
+			harvestResult.setCode("1");
+			harvestResult.setHarvestResultData(harvestResultData);
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(harvestResult);
+			System.out.println("jsonObject  = " + jsonObject);
+			pushMsg(jsonObject);
+		} else {
+			harvestResult.setCode("0");
+			harvestResult.setHarvestResultData(harvestResultData);
+			jsonObject = com.alibaba.fastjson.JSONObject
+					.toJSONString(harvestResult);
+			System.out.println("jsonObject  = " + jsonObject);
+			pushMsg(jsonObject);
+		}
+	}
+
 	private boolean queryUser(User user, String openid) {
 		// 查询数据库
 		// 看看用户是否已经使用此微信账号登陆过，登录过则直接使用数据库数据，否则在请求微信服务器，获取新的用户数据
 		boolean bb = false;
-		String sql = "select * from farm_user where openid='" + openid
-				+ "'";
+		String sql = "select * from farm_user where openid='" + openid + "'";
 		System.out.println("sql = " + sql);
 		ResultSet rs = JDBCUtil.executeQuery(sql);
 
@@ -153,101 +246,10 @@ public class SqlTest {
 		}
 		return bb;
 	}
-	public void login(){
-		
-		// 如果是登录请求，则获取到登录的用户名和密码，进行数据库查询数据，是否用户名和密码争取，如果正确，则返回个用户登录成功的提示
-		
-		String urlStr = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxa8fb492572709521&secret=3117081dbe26f23ffbf84b5e96472f53&code=zhangsan"+"&grant_type=authorization_code";
-		System.out.println("urlStr  = " + urlStr);
 
-		UnionID unionID = new UnionID();
-		unionID.setAccess_token("请求成功");
-		unionID.setOpenid("oVVdbwvclc7NjI2xjhUxE-Gq_daU");
-		LoginResult loginResult = new LoginResult();
-		System.out
-				.println("获取到了用户的openid     Access_token = "
-						+ unionID.getAccess_token()
-						+ "    getOpenid = "
-						+ unionID.getOpenid());
-		User user = new User();
-		if (queryUser(user, unionID.getOpenid())) {
-			System.out
-					.println("数据库中查询到此openid用户的数据，返回给客户端");
 
-			List<Land> lands = new ArrayList<Land>();
-			List<Seed> landSeeds = new ArrayList<Seed>();
-			String sql1 = "select * from farm_land where userId="
-					+ user.getUserId();
-			ResultSet rs1 = JDBCUtil.executeQuery(sql1);
-			try {
-				// 查询数据库,获取上述uid对应的数据
-				while (rs1.next()) {
-					Land land = new Land();
-					land.setLandId(rs1.getLong(1));
-					land.setLandName(rs1.getString(2));
-					land.setLandState(rs1.getString(3));
+	public void plant() {
 
-					// 获取到土地的状态，根据状态是3，土地id查询land_seed表，获取seedid，查询farm_seed表，获取种子信息
-					if (land.getLandState().equals("3")) {
-						String sql2 = "select * from land_seed where landId="
-								+ land.getLandId();
-						ResultSet rs2 = JDBCUtil.executeQuery(sql2);
-						try {
-							// 查询数据库,获取上述uid对应的数据
-							while (rs2.next()) {
-								Seed seed = new Seed();
-								land.setLandId(rs2.getLong(1));
-								land.setLandName(rs2.getString(2));
-								land.setLandState(rs2.getString(3));
-								landSeeds.add(seed);
-							}
-						} catch (SQLException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} finally {
-							JDBCUtil.close(rs2, JDBCUtil.getPs(),
-									JDBCUtil.getConnection());
-						}
-					}
-
-					lands.add(land);
-				}
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} finally {
-				JDBCUtil.close(rs1, JDBCUtil.getPs(), JDBCUtil.getConnection());
-			}
-
-			LoginResultData loginResponseData = new LoginResultData();
-			// user.setUserLands(lands);
-
-			loginResponseData.setUser(user);
-			loginResponseData.setLands(lands);
-			String loginResultData = com.alibaba.fastjson.JSONObject
-					.toJSONString(loginResponseData);
-			System.out.println("loginResultData------------  = "
-					+ loginResultData);
-
-			loginResult.setInfo("info");
-			loginResult.setCode("1");
-			loginResult.setLoginResponseData(loginResponseData);
-			String jsonObject = com.alibaba.fastjson.JSONObject
-					.toJSONString(loginResult);
-			System.out.println("jsonObject  = " + jsonObject);
-
-			pushMsg(jsonObject);
-
-		} else {
-			System.out
-					.println("数据库未查询到此openid用户的数据，进行网络请求，获取此openid用户的数据");
-
-			// 没有数据，根据获取到的openid去微信服务器获取用户数据
-
-		}
-	}
-	public void plant(){
-		
 		// 修改种子数量，种子状态，土地状态，种子生长的过程监控。及时给客户端发送消息
 		// userId seedId landId
 		Long userId = (long) 2;
@@ -255,30 +257,27 @@ public class SqlTest {
 		Long landId = (long) 27;
 
 		PlantResult plantResult = new PlantResult();
-		PlantResultData plantResultData = jdbcService
-				.plant(userId, seedId, landId);
+		PlantResultData plantResultData = jdbcService.plant(userId, seedId,
+				landId);
 		plantResult.setInfo(info);
 		if (plantResultData != null) {
 			plantResult.setCode("1");
-			plantResult
-					.setPlantResultData(plantResultData);
+			plantResult.setPlantResultData(plantResultData);
 			jsonObject = com.alibaba.fastjson.JSONObject
 					.toJSONString(plantResult);
-			System.out.println("jsonObject  = "
-					+ jsonObject);
+			System.out.println("jsonObject  = " + jsonObject);
 			pushMsg(jsonObject);
 		} else {
 			plantResult.setCode("0");
-			plantResult
-					.setPlantResultData(plantResultData);
+			plantResult.setPlantResultData(plantResultData);
 			jsonObject = com.alibaba.fastjson.JSONObject
 					.toJSONString(plantResult);
-			System.out.println("jsonObject  = "
-					+ jsonObject);
+			System.out.println("jsonObject  = " + jsonObject);
 			pushMsg(jsonObject);
 		}
 	}
-	public void getlandmsg(){
+
+	public void getlandmsg() {
 		// 查询土地所有信息
 		Long userId = (long) 1;
 		GetLandMsgResultData getLandMsgResultData = jdbcService
@@ -287,27 +286,23 @@ public class SqlTest {
 		getLandMsgResult.setInfo(info);
 		if (getLandMsgResultData != null) {
 			getLandMsgResult.setCode("1");
-			getLandMsgResult
-					.setGetLandMsgResultData(getLandMsgResultData);
+			getLandMsgResult.setGetLandMsgResultData(getLandMsgResultData);
 			jsonObject = com.alibaba.fastjson.JSONObject
 					.toJSONString(getLandMsgResult);
-			System.out.println("jsonObject  = "
-					+ jsonObject);
+			System.out.println("jsonObject  = " + jsonObject);
 			pushMsg(jsonObject);
 		} else {
 			getLandMsgResult.setCode("0");
-			getLandMsgResult
-					.setGetLandMsgResultData(getLandMsgResultData);
+			getLandMsgResult.setGetLandMsgResultData(getLandMsgResultData);
 			jsonObject = com.alibaba.fastjson.JSONObject
 					.toJSONString(getLandMsgResult);
-			System.out.println("jsonObject  = "
-					+ jsonObject);
+			System.out.println("jsonObject  = " + jsonObject);
 			pushMsg(jsonObject);
 		}
 
-		
 	}
-	public void buy(){
+
+	public void buy() {
 		// 根据请求参数，修改用户的种子数量和金币数量
 		Long userId = (long) 2;
 		Long seedId = (long) 50;
@@ -317,56 +312,47 @@ public class SqlTest {
 		// 2.查询用户金币信息，金币是否购买种子，如不够直接返回提示用户
 		// 3.金币够，则修改用户的种子信息和金币信息
 		// 4.将新的用户数据返回给用户
-		BuySeedResultData buySeedResultData = jdbcService
-				.getBuySeedResultData(userId, seedId,
-						seedNumber);
+		BuySeedResultData buySeedResultData = jdbcService.getBuySeedResultData(
+				userId, seedId, seedNumber);
 		BuySeedResult buySeedResult = new BuySeedResult();
 		buySeedResult.setInfo(info);
-		
+
 		if (buySeedResultData != null) {
 			buySeedResult.setCode("1");
-			buySeedResult
-					.setBuySeedResultData(buySeedResultData);
+			buySeedResult.setBuySeedResultData(buySeedResultData);
 			jsonObject = com.alibaba.fastjson.JSONObject
 					.toJSONString(buySeedResult);
-			System.out.println("jsonObject  = "
-					+ jsonObject);
+			System.out.println("jsonObject  = " + jsonObject);
 			pushMsg(jsonObject);
 		} else {
 			buySeedResult.setCode("0");
-			buySeedResult
-					.setBuySeedResultData(buySeedResultData);
+			buySeedResult.setBuySeedResultData(buySeedResultData);
 			jsonObject = com.alibaba.fastjson.JSONObject
 					.toJSONString(buySeedResult);
-			System.out.println("jsonObject--  = "
-					+ jsonObject);
+			System.out.println("jsonObject--  = " + jsonObject);
 			pushMsg(jsonObject);
 		}
 	}
-	public void test17(){
+
+	public void test17() {
 		// 查询数据库种子列表所有数据
-		SeedMsgAllResultData seedMsgAllResultData = jdbcService
-				.getSeedMsgAll();
+		SeedMsgAllResultData seedMsgAllResultData = jdbcService.getSeedMsgAll();
 		SeedMsgAllResult seedMsgAllResult = new SeedMsgAllResult();
 		seedMsgAllResult.setInfo(info);
 		if (seedMsgAllResultData != null) {
 			seedMsgAllResult.setCode("1");
-			seedMsgAllResult
-					.setSeedMsgAllResultData(seedMsgAllResultData);
+			seedMsgAllResult.setSeedMsgAllResultData(seedMsgAllResultData);
 			jsonObject = com.alibaba.fastjson.JSONObject
 					.toJSONString(seedMsgAllResult);
-			System.out.println("jsonObject  = "
-					+ jsonObject);
+			System.out.println("jsonObject  = " + jsonObject);
 			pushMsg(jsonObject);
 
 		} else {
 			seedMsgAllResult.setCode("0");
-			seedMsgAllResult
-					.setSeedMsgAllResultData(seedMsgAllResultData);
+			seedMsgAllResult.setSeedMsgAllResultData(seedMsgAllResultData);
 			jsonObject = com.alibaba.fastjson.JSONObject
 					.toJSONString(seedMsgAllResult);
-			System.out.println("jsonObject  = "
-					+ jsonObject);
+			System.out.println("jsonObject  = " + jsonObject);
 			pushMsg(jsonObject);
 		}
 	}
@@ -404,284 +390,254 @@ public class SqlTest {
 				e.printStackTrace();
 			}
 		}
+
+	}
+	public void login(){
+		
+		// 如果是登录请求，则获取到登录的用户名和密码，进行数据库查询数据，是否用户名和密码争取，如果正确，则返回个用户登录成功的提示
+		String code = "data";
+		String urlStr = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxa8fb492572709521&secret=3117081dbe26f23ffbf84b5e96472f53&code="
+				+ code
+				+ "&grant_type=authorization_code";
+		System.out.println("urlStr  = " + urlStr);
+
+		UnionID unionID = new UnionID();
+		unionID.setOpenid("zhangsan");
+		LoginResult loginResult = new LoginResult();
+		loginResult.setInfo(info);
+		System.out
+				.println("获取到了用户的openid     Access_token = "
+						+ unionID.getAccess_token()
+						+ "    getOpenid = "
+						+ unionID.getOpenid());
+		User user = new User();
+		if (queryUser(user, unionID.getOpenid())) {
+			System.out
+					.println("数据库中查询到此openid用户的数据，返回给客户端");
+
+			resultLoginData(loginResult, user);
+
+		} else {
+			System.out
+					.println("数据库未查询到此openid用户的数据，进行网络请求，获取此openid用户的数据");
+
+			// 没有数据，根据获取到的openid去微信服务器获取用户数据
+			String url = "https://api.weixin.qq.com/sns/userinfo?access_token="
+					+ unionID.getAccess_token()
+					+ "&openid=" + unionID.getOpenid();
+			System.out
+					.println("未从数据库获取到数据，网络请求进行数据获取----url  = "
+							+ url);
+			HttpUtil.requestData(url,
+					new HttpCallBackListener() {
+						@Override
+						public void onFinish(
+								String respose) {
+							// 判断请求到的数据是否为空
+							if (respose != null) {
+								System.out
+										.println("获取到用户信息json  = "
+												+ respose);
+								// 不为空，进行解析，并将解析的数据保存到本地数据库中去
+								analysisInsertData(
+										user, respose);
+								// 将获取到的数据返回给客户端
+								resultLoginData(
+										loginResult,
+										user);
+								System.out
+										.println("网络请求到用户数据  = "
+												+ user);
+							} else {
+								System.out
+										.println("获取到用户信息的json为空  = "
+												+ user);
+							}
+						}
+
+						@Override
+						public void onError(Exception e) {
+							// 处理异常
+							System.out
+									.println(" 获取到用户信息的网络请求失败 ，给客户端提示 = "
+											+ user);
+
+						}
+
+						// 解析微信首次登录获取到的用户数据，并插入到本地数据库
+						private void analysisInsertData(
+								User user,
+								String respose) {
+							try {
+								JSONObject jsonObject2 = new JSONObject(
+										respose);
+								user.setOpenid(jsonObject2
+										.getString("openid"));
+								user.setUserNickName(jsonObject2
+										.getString("nickname"));
+								System.out
+										.println(jsonObject2
+												.getString("nickname"));
+								user.setSex(jsonObject2
+										.getInt("sex"));
+								user.setProvince(jsonObject2
+										.getString("province"));
+								user.setCity(jsonObject2
+										.getString("city"));
+								user.setCountry(jsonObject2
+										.getString("country"));
+								user.setUserImage(jsonObject2
+										.getString("headimgurl"));
+								JSONArray jsonArray = jsonObject2
+										.getJSONArray("privilege");
+								String[] privilege = null;
+								for (int i = 0; i < jsonArray
+										.length(); i++) {
+									privilege[i] = jsonArray
+											.getString(i);
+								}
+								user.setPrivilege(privilege);
+								user.setUnionid(jsonObject2
+										.getString("unionid"));
+
+							} catch (JSONException e) {
+								//
+								e.printStackTrace();
+							}
+							System.out.println("nickname = "
+									+ user.getUserNickName());
+
+							Long userGold = (long) 5000;
+							Long userExperience = (long) 500;
+							String sql3 = "INSERT INTO farm_user("
+									+ "userNickName,userImage,userGold,openid,userExperience)"
+									+ "VALUES('"
+									+ user.getUserNickName()
+									+ "','"
+									+ user.getUserImage()
+									+ "',"
+									+ userGold
+									+ ",'"
+									+ user.getOpenid()
+									+ "',"
+									+ userExperience
+									+ ") ";
+							System.out
+									.println("sql3===="
+											+ sql3);
+
+							try {
+								user.setUserId(JDBCUtil
+										.executeUpdateGetId(sql3));
+								user.setUserGold(userGold);
+								user.setUserExperience(userExperience);
+								System.out.println("刚刚插入数据的id ---  11 = "
+										+ user.getUserId());
+
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+
+					});
+
+		}
 		
 	}
 
-	public synchronized void test15(String code) {
-
-		System.out.println("data --= " + code);
-		LoginResult loginResult = new LoginResult();
-
-		// 登录筛选
-		User user = new User();
-		System.out.println("调用微信登录方法WeiXinlogin");
-		String url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxa8fb492572709521&secret=3117081dbe26f23ffbf84b5e96472f53&code="
-				+ code + "&grant_type=authorization_code";
-		System.out.println("  001  == " + url);
-
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				// 客户端发送的code进行微信网络请求，然后
-				HttpUtil.requestData(url, new HttpCallBackListener() {
-
-					@Override
-					public void onFinish(String response) {
-						System.out.println("onFinish  response  = "
-								+ response.toString());
-						// 处理请求
-						if (response != null) {
-							System.out.println("获取access_token  json = "
-									+ response);
-							analysisAccessToken(response);
-							System.out.println("access_token_______________ = "
-									+ access_token + "    --  openid  = "
-									+ openid);
-
-							boolean bb = queryUser(user);
-							// 判断数据库是否已有用户数据
-							if (bb) {
-								System.out
-										.println("--------获取到数据，输出----------------------");
-								// 有数据，则直接返回给客户端
-								resultLoginData(loginResult, user);
-								System.out.println("数据库查询到用户，无需再次请求，直接得到用户 = "
-										+ user);
-
-							} else {
-								// 没有数据，根据获取到的openid去微信服务器获取用户数据
-								String url = "https://api.weixin.qq.com/sns/userinfo?access_token="
-										+ access_token + "&openid=" + openid;
-								System.out
-										.println("未从数据库获取到数据，网络请求进行数据获取----url  = "
-												+ url);
-								HttpUtil.requestData(url,
-										new HttpCallBackListener() {
-											@Override
-											public void onFinish(String respose) {
-												// 判断请求到的数据是否为空
-												if (respose != null) {
-													System.out
-															.println("获取到用户信息json  = "
-																	+ respose);
-													// 不为空，进行解析，并将解析的数据保存到本地数据库中去
-													analysisInsertData(user,
-															respose);
-													// 将获取到的数据返回给客户端
-													resultLoginData(
-															loginResult, user);
-													System.out
-															.println("网络请求到用户数据  = "
-																	+ user);
-												} else {
-													System.out
-															.println("获取到用户信息的json为空  = "
-																	+ user);
-												}
-											}
-
-											// 解析微信首次登录获取到的用户数据，并插入到本地数据库
-											private void analysisInsertData(
-													User user, String respose) {
-												try {
-													JSONObject jsonObject2 = new JSONObject(
-															respose);
-													openid = jsonObject2
-															.getString("openid");
-													nickname = jsonObject2
-															.getString("nickname");
-													sex = jsonObject2
-															.getInt("sex");
-													province = jsonObject2
-															.getString("province");
-
-													city = jsonObject2
-															.getString("city");
-													country = jsonObject2
-															.getString("country");
-													headimgurl = jsonObject2
-															.getString("headimgurl");
-													jsonArray = jsonObject2
-															.getJSONArray("privilege");
-													for (int i = 0; i < jsonArray
-															.length(); i++) {
-														privilege[i] = jsonArray
-																.getString(i);
-													}
-													unionid = jsonObject2
-															.getString("unionid");
-
-												} catch (JSONException e) {
-													//
-													e.printStackTrace();
-												}
-												System.out
-														.println("nickname = "
-																+ nickname);
-
-												Long userGold = (long) 5000;
-												Long userExperience = (long) 500;
-												String sql3 = "INSERT INTO farm_user("
-														+ "userNickName,userImage,userGold,openid,userExperience)"
-														+ "VALUES('"
-														+ nickname
-														+ "','"
-														+ headimgurl
-														+ "',"
-														+ userGold
-														+ ",'"
-														+ openid
-														+ "',"
-														+ userExperience + ") ";
-												System.out.println("sql3===="
-														+ sql3);
-
-												try {
-													user.setUserId(JDBCUtil
-															.executeUpdateGetId(sql3));
-													user.setUserNickName(nickname);
-													user.setUserImage(headimgurl);
-													user.setUserGold(userGold);
-													user.setOpenid(openid);
-													user.setUserExperience(userExperience);
-													System.out.println("刚刚插入数据的id ---  11 = "
-															+ user.getUserId());
-
-												} catch (Exception e) {
-													e.printStackTrace();
-												}
-											}
-
-											@Override
-											public void onError(Exception e) {
-												// 处理异常
-												System.out
-														.println(" 获取到用户信息的网络请求失败 ，给客户端提示 = "
-																+ user);
-
-											}
-										});
-							}
-
-						} else {
-							System.out.println("获取access_token 的json为空 = "
-									+ user);
-						}
-					}
-
-					@Override
-					public void onError(Exception e) {
-						// 处理异常
-						System.out.println("获取access_token 的网络请求失败,给客户端提示  = "
-								+ user);
-
-					}
-
-					// 获取到user，并将数据返回给客户端
-					private void resultLoginData(LoginResult loginResult,
-							User user) {
-						List<Land> lands = new ArrayList<Land>();
-						// Set<Land> lands = new HashSet<Land>();
-						for (int i = 0; i < 10000; i++) {
-							Land land = new Land();
-							String sql1 = "select * from farm_land where userId="
-									+ user.getUserId();
-							ResultSet rs1 = JDBCUtil.executeQuery(sql1);
-							try {
-								// 查询数据库,获取上述uid对应的数据
-								while (rs1.next()) {
-									land.setLandId(rs1.getLong(1));
-									land.setLandName(rs1.getString(2));
-									land.setLandState(rs1.getString(3));
-								}
-							} catch (SQLException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} finally {
-								JDBCUtil.close(rs1, JDBCUtil.getPs(),
-										JDBCUtil.getConnection());
-							}
-							lands.add(land);
-						}
-						LoginResultData loginResponseData = new LoginResultData();
-						// user.setUserLands(lands);
-
-						loginResponseData.setUser(user);
-						loginResponseData.setLands(lands);
-						String loginResultData = com.alibaba.fastjson.JSONObject
-								.toJSONString(loginResponseData);
-						System.out.println("loginResultData------------  = "
-								+ loginResultData);
-
-						loginResult.setInfo("info");
-						loginResult.setCode("1");
-						loginResult.setLoginResponseData(loginResponseData);
-						String jsonObject = com.alibaba.fastjson.JSONObject
-								.toJSONString(loginResult);
-						System.out.println("jsonObject  = " + jsonObject);
-						pushMsg(jsonObject);
-					}
-
-					// 解析access_token的网络请求数据，得到access_token和openid
-					private void analysisAccessToken(String response) {
-						try {
-							JSONObject jsonObject1 = new JSONObject(response);
-							access_token = jsonObject1
-									.getString("access_token");
-							expires_in = jsonObject1.getInt("expires_in");
-							refresh_token = jsonObject1
-									.getString("refresh_token");
-							openid = jsonObject1.getString("openid");
-							scope = jsonObject1.getString("scope");
-
-						} catch (JSONException e) {
-							//
-							e.printStackTrace();
-						}
-					}
-
-					// 获取access_token后进行数据库查询是否有openid的用户
-					private boolean queryUser(User user) {
-						// 查询数据库
-						// 看看用户是否已经使用此微信账号登陆过，登录过则直接使用数据库数据，否则在请求微信服务器，获取新的用户数据
-						boolean bb = false;
-						String sql = "select * from farm_user where openid='"
-								+ openid + "'";
-						System.out.println("sql = " + sql);
-						ResultSet rs = JDBCUtil.executeQuery(sql);
-
-						try {
-							// 查询数据库,获取上述uid对应的数据
-							while (rs.next()) {
-								System.out.println("遍历数据库查询到数据");
-								user.setUserId(rs.getLong(1));
-								user.setUserNickName(rs.getString(2));
-								user.setUserImage(rs.getString(3));
-								user.setUserGold(rs.getLong(4));
-								user.setUserExperience(rs.getLong(6));
-								bb = true;
-
-							}
-						} catch (SQLException e) {
-							// TODO Auto-generated catch block
-							System.out.println("wenti  01  ----");
-							e.printStackTrace();
-						} finally {
-							JDBCUtil.close(rs, JDBCUtil.getPs(),
-									JDBCUtil.getConnection());
-						}
-						return bb;
-					}
-
-				});
-
+	private void resultLoginData(LoginResult loginResult,
+			User user) {
+		List<Land> lands = new ArrayList<Land>();
+//		for (int i = 0; i < 10000; i++) {
+			
+			String sql1 = "select * from farm_land where userId="
+					+ user.getUserId();
+			System.out.println("sql1 = " + sql1);
+			ResultSet rs1 = JDBCUtil.executeQuery(sql1);
+			try {
+				// 查询数据库,获取上述uid对应的数据
+				while (rs1.next()) {
+					Land land = new Land();
+					land.setLandId(rs1.getLong(1));
+					land.setLandName(rs1.getString(2));
+					land.setLandState(rs1.getString(3));
+					lands.add(land);
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				JDBCUtil.close(rs1, JDBCUtil.getPs(),
+						JDBCUtil.getConnection());
 			}
-		}).start();
+			
+//		}
+		//遍历lands，获取其land对象的landState，
+		List<LandData> landDatas = new ArrayList<LandData>();
+		for (Land land : lands) {
+			LandData landData = new LandData();
+			landData.setLandId(land.getLandId());
+			landData.setLandName(land.getLandName());
+			landData.setLandState(land.getLandState());
+			if (land.getLandState().equals("3")) {
+				//状态是3，查询land_seed表，获取seedId
+				Long seedId = null;
+				String sql = "select * from land_seed where landId="
+						+ land.getLandId();
+				
+				System.out.println("sql = " + sql);
+				ResultSet rs = JDBCUtil.executeQuery(sql);
+				try {
+					while (rs.next()) {
+						seedId = rs.getLong(2);
+						System.out.println("用户土地信息    seedId = " + seedId);
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				} finally {
+					JDBCUtil.close(rs, JDBCUtil.getPs(), JDBCUtil.getConnection());
+				}
+				//根据获取到的seedId，查询farm_seed表，获取其seedName
+				String sql2 = "select * from farm_seed where seedId="
+						+ seedId;
+				
+				System.out.println("sql2 = " + sql2);
+				ResultSet rs2 = JDBCUtil.executeQuery(sql2);
+				try {
+					while (rs2.next()) {
+						
+						landData.setSeedName(rs2.getString(2));
+						System.out.println("用户土地信息  landData.getSeedName() = " + landData.getSeedName());
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				} finally {
+					JDBCUtil.close(rs2, JDBCUtil.getPs(), JDBCUtil.getConnection());
+				}
+				
+			}else {
+				landData.setSeedName("");
+			}
+			landDatas.add(landData);
+		}
+		
+		
+		LoginResultData loginResponseData = new LoginResultData();
+		loginResponseData.setUser(user);
+		loginResponseData.setLandDatas(landDatas);
+		String loginResultData = com.alibaba.fastjson.JSONObject
+				.toJSONString(loginResponseData);
+		System.out.println("loginResultData------------  = "
+				+ loginResultData);
 
-		System.out.println("请求导数据，返回用户数据---- = " + user);
+		loginResult.setCode("1");
+		loginResult.setLoginResponseData(loginResponseData);
+		String jsonObject = com.alibaba.fastjson.JSONObject
+				.toJSONString(loginResult);
+		System.out.println("jsonObject  = " + jsonObject);
+		pushMsg(jsonObject);
 	}
+
 
 	public void test14() {
 
@@ -1145,27 +1101,5 @@ public class SqlTest {
 		}
 	}
 
-	public void test05() {
-
-		String code = "";
-		if (jdbcService.login(code)) {
-			User user = new User();
-			LoginResultData loginResponseData = jdbcService.loginResult(user);
-			LoginResult loginResponse = new LoginResult();
-			loginResponse.setInfo(info);
-			loginResponse.setLoginResponseData(loginResponseData);
-			jsonObject = com.alibaba.fastjson.JSONObject
-					.toJSONString(loginResponse);
-			System.out.println("jsonObject  = " + jsonObject);
-
-		} else {
-			LoginResult loginResponse = new LoginResult();
-			loginResponse.setInfo(info);
-			jsonObject = com.alibaba.fastjson.JSONObject
-					.toJSONString(loginResponse);
-			System.out.println("jsonObject  = " + jsonObject);
-
-		}
-	}
 
 }

@@ -3,21 +3,15 @@ package com.jiudianlianxian.socket;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URL;
-import java.net.URLConnection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -36,6 +30,7 @@ import com.jiudianlianxian.bean.LoginResult;
 import com.jiudianlianxian.bean.OpenWarehouseResult;
 import com.jiudianlianxian.bean.PlantResult;
 import com.jiudianlianxian.bean.SeedMsgAllResult;
+import com.jiudianlianxian.bean.SellFruitResult;
 import com.jiudianlianxian.data.BuySeedResultData;
 import com.jiudianlianxian.data.GetLandMsgResultData;
 import com.jiudianlianxian.data.GetSeedMsgResultData;
@@ -44,8 +39,9 @@ import com.jiudianlianxian.data.LoginResultData;
 import com.jiudianlianxian.data.OpenWarehouseResultData;
 import com.jiudianlianxian.data.PlantResultData;
 import com.jiudianlianxian.data.SeedMsgAllResultData;
+import com.jiudianlianxian.data.SellFruitResultData;
 import com.jiudianlianxian.domain.Land;
-import com.jiudianlianxian.domain.Seed;
+import com.jiudianlianxian.domain.LandData;
 import com.jiudianlianxian.domain.User;
 import com.jiudianlianxian.service.JDBCService;
 import com.jiudianlianxian.util.JDBCUtil;
@@ -125,14 +121,36 @@ public class SocketServer extends ServerSocket {
 			System.out.println("Form Cliect[port:" + socket.getPort() + "] "
 					+ this.userName + "已进入房间可以开始游戏");
 		}
+		
+		public void requestMsg(){
+			String jsonData = null;
+			
+				try {
+					byte[] byteBuff = new byte[1024 * 8];
 
+					int len;
+					while ((len = is.read(byteBuff)) != -1) {
+
+						jsonData = new String(Arrays.copyOf(byteBuff, len));
+						System.out.println("-----buff-----" + jsonData);
+						
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+		
 		@Override
 		public void run() {
 			try {
-				while (true) {
-
+				
+				boolean issocket = socket.isConnected();
+				while (issocket) {
+					socket.sendUrgentData(0);
 					String msg = null;
 					String jsonData = null;
+					
 					try {
 						byte[] byteBuff = new byte[1024 * 8];
 
@@ -194,7 +212,6 @@ public class SocketServer extends ServerSocket {
 															unionID.getOpenid())) {
 														System.out
 																.println("数据库中查询到此openid用户的数据，返回给客户端");
-
 														resultLoginData(
 																loginResult,
 																user);
@@ -343,7 +360,7 @@ public class SocketServer extends ServerSocket {
 											public void onError(Exception e) {
 												// TODO 请求失败
 												System.out
-														.println("获取assess_token网络请求失败"
+														.println("获取assess_token网络请求失败  ==  "
 																+ e);
 											}
 										});
@@ -537,7 +554,7 @@ public class SocketServer extends ServerSocket {
 								}
 
 							} else if ("parcel".equals(info)) { // 包裹 已购买的种子
-								// 查询果实所有信息
+								// 查询背包种子所有信息
 								Long userId = Long.valueOf(json
 										.getString("userId"));
 								GetSeedMsgResultData getSeedMsgResultData = jdbcService
@@ -564,6 +581,36 @@ public class SocketServer extends ServerSocket {
 									pushMsg(jsonObject);
 								}
 
+							}else if ("sell".equals(info)) {    //出售果实
+								// 根据传入果实id查询果实剩余数量，判断查询到的数量是否大于传入的数量，大于的话，删除数据库果实，改变用户所得金币，返回给客户端金币，和出售果实信息
+								Long userId = Long.valueOf(json
+										.getString("userId"));
+								Long fruitId = Long.valueOf(json.getString("fruitId"));
+								Long fruitNumber = Long.valueOf(json.getString("fruitNumber"));
+								SellFruitResultData sellFruitResultData = jdbcService
+										.sellFruit(userId, fruitId, fruitNumber);
+								
+								SellFruitResult sellFruitResult = new SellFruitResult();
+								sellFruitResult.setInfo(info);
+								if (sellFruitResultData != null) {
+									sellFruitResult.setCode("1");
+									sellFruitResult
+											.setSellFruitResultData(sellFruitResultData);
+									jsonObject = com.alibaba.fastjson.JSONObject
+											.toJSONString(sellFruitResult);
+									System.out.println("jsonObject  = "
+											+ jsonObject);
+									pushMsg(jsonObject);
+								} else {
+									sellFruitResult.setCode("0");
+									sellFruitResult
+											.setSellFruitResultData(sellFruitResultData);
+									jsonObject = com.alibaba.fastjson.JSONObject
+											.toJSONString(sellFruitResult);
+									System.out.println("jsonObject  = "
+											+ jsonObject);
+									pushMsg(jsonObject);
+								}
 							}
 
 							if (VIEW_USER.equals(msg)) { // 查看已连接客户端
@@ -577,9 +624,11 @@ public class SocketServer extends ServerSocket {
 							}
 
 						}
+						
 						System.out.println("xiayibu");
 					} catch (IOException e) {
 						System.out.println("yichang");
+						issocket = false;
 						e.printStackTrace();
 					}
 
@@ -674,7 +723,6 @@ public class SocketServer extends ServerSocket {
 
 				}
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				System.out.println("wenti  01  ----");
 				e.printStackTrace();
 			} finally {
@@ -689,76 +737,163 @@ public class SocketServer extends ServerSocket {
 		 * @param loginResult
 		 * @param user
 		 */
-		private void resultLoginData(LoginResult loginResult, User user) {
+		// 获取到user，并将数据返回给客户端
+		private void resultLoginData(LoginResult loginResult,
+				User user) {
 			List<Land> lands = new ArrayList<Land>();
-			List<Seed> landSeeds = new ArrayList<Seed>();
-			String sql1 = "select * from farm_land where userId=" + 1;
-//					+ user.getUserId();
-			ResultSet rs1 = JDBCUtil.executeQuery(sql1);
-			try {
-				// 查询数据库,获取上述uid对应的数据
-				while (rs1.next()) {
-					Land land = new Land();
-					land.setLandId(rs1.getLong(1));
-					land.setLandName(rs1.getString(2));
-					land.setLandState(rs1.getString(3));
-					
-//					//获取到土地的状态，根据状态是3，土地id查询land_seed表，获取seedid，查询farm_seed表，获取种子信息
-//					if(land.getLandState().equals("3")){
-//						String sql2 = "select * from land_seed where landId="
-//								+ land.getLandId();
-//						ResultSet rs2 = JDBCUtil.executeQuery(sql2);
-//						try {
-//							// 查询数据库,获取上述uid对应的数据
-//							while (rs2.next()) {
-//								Seed seed = new Seed();
-//								land.setLandId(rs2.getLong(1));
-//								land.setLandName(rs2.getString(2));
-//								land.setLandState(rs2.getString(3));
-//								landSeeds.add(seed);
-//							}
-//						} catch (SQLException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						} finally {
-//							JDBCUtil.close(rs2, JDBCUtil.getPs(), JDBCUtil.getConnection());
-//						}
-//					}
-					
-					
-					lands.add(land);
+				String sql1 = "select * from farm_land where userId="
+						+ user.getUserId();
+				System.out.println("sql1 = " + sql1);
+				ResultSet rs1 = JDBCUtil.executeQuery(sql1);
+				try {
+					// 查询数据库,获取上述uid对应的数据
+					while (rs1.next()) {
+						Land land = new Land();
+						land.setLandId(rs1.getLong(1));
+						land.setLandName(rs1.getString(2));
+						land.setLandState(rs1.getString(3));
+						lands.add(land);
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				} finally {
+					JDBCUtil.close(rs1, JDBCUtil.getPs(),
+							JDBCUtil.getConnection());
 				}
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} finally {
-				JDBCUtil.close(rs1, JDBCUtil.getPs(), JDBCUtil.getConnection());
+				
+			//遍历lands，获取其land对象的landState，
+			List<LandData> landDatas = new ArrayList<LandData>();
+			for (Land land : lands) {
+				LandData landData = new LandData();
+				landData.setLandId(land.getLandId());
+				landData.setLandName(land.getLandName());
+				landData.setLandState(land.getLandState());
+				if (land.getLandState().equals("3")) {
+					//状态是3即种植状态，查询land_seed表，获取seedId
+					Long seedId = null;
+					String sql = "select * from land_seed where landId="
+							+ land.getLandId();
+					
+					System.out.println("sql = " + sql);
+					ResultSet rs = JDBCUtil.executeQuery(sql);
+					try {
+						while (rs.next()) {
+							seedId = rs.getLong(2);
+							System.out.println("用户土地信息    seedId = " + seedId);
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					} finally {
+						JDBCUtil.close(rs, JDBCUtil.getPs(), JDBCUtil.getConnection());
+					}
+					//根据获取到的seedId，查询farm_seed表，获取其seedName
+					String sql2 = "select * from farm_seed where seedId="
+							+ seedId;
+					
+					System.out.println("sql2 = " + sql2);
+					ResultSet rs2 = JDBCUtil.executeQuery(sql2);
+					try {
+						while (rs2.next()) {
+							
+							landData.setSeedName(rs2.getString(2));
+							System.out.println("用户土地信息  landData.getSeedName() = " + landData.getSeedName());
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					} finally {
+						JDBCUtil.close(rs2, JDBCUtil.getPs(), JDBCUtil.getConnection());
+					}
+					
+				}else {
+					landData.setSeedName("");
+				}
+				landDatas.add(landData);
 			}
 			
 			
-			
-			
-			
-
 			LoginResultData loginResponseData = new LoginResultData();
-			// user.setUserLands(lands);
-
 			loginResponseData.setUser(user);
-			loginResponseData.setLands(lands);
+			loginResponseData.setLandDatas(landDatas);
 			String loginResultData = com.alibaba.fastjson.JSONObject
 					.toJSONString(loginResponseData);
 			System.out.println("loginResultData------------  = "
 					+ loginResultData);
 
-			
 			loginResult.setCode("1");
 			loginResult.setLoginResponseData(loginResponseData);
 			String jsonObject = com.alibaba.fastjson.JSONObject
 					.toJSONString(loginResult);
 			System.out.println("jsonObject  = " + jsonObject);
-
 			pushMsg(jsonObject);
 		}
+
+//		private void resultLoginData(LoginResult loginResult, User user) {
+//			List<Land> lands = new ArrayList<Land>();
+//			List<Seed> landSeeds = new ArrayList<Seed>();
+//			String sql1 = "select * from farm_land where userId=" + 1;
+////					+ user.getUserId();
+//			ResultSet rs1 = JDBCUtil.executeQuery(sql1);
+//			try {
+//				// 查询数据库,获取上述uid对应的数据
+//				while (rs1.next()) {
+//					Land land = new Land();
+//					land.setLandId(rs1.getLong(1));
+//					land.setLandName(rs1.getString(2));
+//					land.setLandState(rs1.getString(3));
+//					
+////					//获取到土地的状态，根据状态是3，土地id查询land_seed表，获取seedid，查询farm_seed表，获取种子信息
+////					if(land.getLandState().equals("3")){
+////						String sql2 = "select * from land_seed where landId="
+////								+ land.getLandId();
+////						ResultSet rs2 = JDBCUtil.executeQuery(sql2);
+////						try {
+////							// 查询数据库,获取上述uid对应的数据
+////							while (rs2.next()) {
+////								Seed seed = new Seed();
+////								land.setLandId(rs2.getLong(1));
+////								land.setLandName(rs2.getString(2));
+////								land.setLandState(rs2.getString(3));
+////								landSeeds.add(seed);
+////							}
+////						} catch (SQLException e) {
+////							// TODO Auto-generated catch block
+////							e.printStackTrace();
+////						} finally {
+////							JDBCUtil.close(rs2, JDBCUtil.getPs(), JDBCUtil.getConnection());
+////						}
+////					}
+//					
+//					
+//					lands.add(land);
+//				}
+//			} catch (SQLException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			} finally {
+//				JDBCUtil.close(rs1, JDBCUtil.getPs(), JDBCUtil.getConnection());
+//			}
+//			
+//			
+//			
+//			LoginResultData loginResponseData = new LoginResultData();
+//			// user.setUserLands(lands);
+//
+//			loginResponseData.setUser(user);
+////			loginResponseData.setLands(lands);
+//			String loginResultData = com.alibaba.fastjson.JSONObject
+//					.toJSONString(loginResponseData);
+//			System.out.println("loginResultData------------  = "
+//					+ loginResultData);
+//
+//			
+//			loginResult.setCode("1");
+//			loginResult.setLoginResponseData(loginResponseData);
+//			String jsonObject = com.alibaba.fastjson.JSONObject
+//					.toJSONString(loginResult);
+//			System.out.println("jsonObject  = " + jsonObject);
+//
+//			pushMsg(jsonObject);
+//		}
 
 	}
 
