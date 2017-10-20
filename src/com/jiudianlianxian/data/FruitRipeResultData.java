@@ -15,13 +15,14 @@ public class FruitRipeResultData {
 	
 	private Long userId;
 	private Long landId;
-	private String landState;
+	private Long landState;
 	
 	
-	public String getLandState() {
+	
+	public Long getLandState() {
 		return landState;
 	}
-	public void setLandState(String landState) {
+	public void setLandState(Long landState) {
 		this.landState = landState;
 	}
 	public Long getUserId() {

@@ -17,6 +17,8 @@ public class RipeMessage {
 	private Long userId;
 	private Long seedGrowthTime;
 	private Long seedPlantTime;
+	
+	
 	public Long getSeedId() {
 		return seedId;
 	}

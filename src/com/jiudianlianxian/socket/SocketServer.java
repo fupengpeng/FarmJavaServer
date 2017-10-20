@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -23,6 +24,7 @@ import org.json.JSONObject;
 
 import com.alibaba.fastjson.JSON;
 import com.jiudianlianxian.bean.BuySeedResult;
+import com.jiudianlianxian.bean.FruitRipeResult;
 import com.jiudianlianxian.bean.GetLandMsgResult;
 import com.jiudianlianxian.bean.GetSeedMsgResult;
 import com.jiudianlianxian.bean.HarvestResult;
@@ -32,6 +34,7 @@ import com.jiudianlianxian.bean.PlantResult;
 import com.jiudianlianxian.bean.SeedMsgAllResult;
 import com.jiudianlianxian.bean.SellFruitResult;
 import com.jiudianlianxian.data.BuySeedResultData;
+import com.jiudianlianxian.data.FruitRipeResultData;
 import com.jiudianlianxian.data.GetLandMsgResultData;
 import com.jiudianlianxian.data.GetSeedMsgResultData;
 import com.jiudianlianxian.data.HarvestResultData;
@@ -42,6 +45,7 @@ import com.jiudianlianxian.data.SeedMsgAllResultData;
 import com.jiudianlianxian.data.SellFruitResultData;
 import com.jiudianlianxian.domain.Land;
 import com.jiudianlianxian.domain.LandData;
+import com.jiudianlianxian.domain.RipeMessage;
 import com.jiudianlianxian.domain.User;
 import com.jiudianlianxian.service.JDBCService;
 import com.jiudianlianxian.util.JDBCUtil;
@@ -116,10 +120,14 @@ public class SocketServer extends ServerSocket {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			
+			furitRipe();
 			userList.add(this.userName);
 			threadList.add(this);
 			System.out.println("Form Cliect[port:" + socket.getPort() + "] "
 					+ this.userName + "已进入房间可以开始游戏");
+			
+			
 		}
 		
 		public void requestMsg(){
@@ -750,8 +758,8 @@ public class SocketServer extends ServerSocket {
 					while (rs1.next()) {
 						Land land = new Land();
 						land.setLandId(rs1.getLong(1));
-						land.setLandName(rs1.getString(2));
-						land.setLandState(rs1.getString(3));
+						land.setLandName(rs1.getLong(2));
+						land.setLandState(rs1.getLong(3));
 						lands.add(land);
 					}
 				} catch (SQLException e) {
@@ -768,7 +776,7 @@ public class SocketServer extends ServerSocket {
 				landData.setLandId(land.getLandId());
 				landData.setLandName(land.getLandName());
 				landData.setLandState(land.getLandState());
-				if (land.getLandState().equals("3")) {
+				if (land.getLandState() == 3) {
 					//状态是3即种植状态，查询land_seed表，获取seedId
 					Long seedId = null;
 					String sql = "select * from land_seed where landId="
@@ -894,6 +902,71 @@ public class SocketServer extends ServerSocket {
 //
 //			pushMsg(jsonObject);
 //		}
+		
+		private void furitRipe(){
+			
+			//1.查询farm_seed表，获取seedState为3的种子集合
+			
+			//2.遍历种子集合得到种子信息
+			List<RipeMessage> ripeMessages = new ArrayList<RipeMessage>();
+			String sql = "select * from farm_seed where seedState=3";
+			System.out.println("sql = " + sql);
+			ResultSet rs = JDBCUtil.executeQuery(sql);
+			try {
+				while (rs.next()) {
+					RipeMessage ripeMessage = new RipeMessage();
+					ripeMessage.setSeedId(rs.getLong(1));
+					ripeMessage.setSeedGrowthTime(rs.getLong(4));
+					ripeMessage.setUserId(rs.getLong(13));
+					ripeMessage.setSeedPlantTime(rs.getLong(14));
+					ripeMessages.add(ripeMessage);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				JDBCUtil.close(rs, JDBCUtil.getPs(), JDBCUtil.getConnection());
+			}
+			System.out.println("seeds = " + ripeMessages.toString());
+			for (RipeMessage ripeMessage : ripeMessages) {
+				Long plantTime = ripeMessage.getSeedPlantTime();
+				Long currentTime = new Date().getTime();
+				Long growthTime = ripeMessage.getSeedGrowthTime();
+				FruitRipeResult fruitRipeResult = new FruitRipeResult();
+				fruitRipeResult.setInfo("fruitRipe");
+				FruitRipeResultData fruitRipeResultData = new FruitRipeResultData();
+				
+				if (currentTime >= (plantTime + growthTime)) {
+					Long landId = null;
+					String sql1 = "select * from land_seed where seedId=" + ripeMessage.getSeedId();
+					System.out.println("sql1 = " + sql1);
+					ResultSet rs1 = JDBCUtil.executeQuery(sql);
+					try {
+						while (rs1.next()) {
+							landId = rs1.getLong(1);
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					} finally {
+						JDBCUtil.close(rs, JDBCUtil.getPs(), JDBCUtil.getConnection());
+					}
+					
+					
+					
+					fruitRipeResultData.setLandId(landId);
+					fruitRipeResultData.setLandState(1L);
+					fruitRipeResultData.setUserId(ripeMessage.getUserId());
+					fruitRipeResult.setFruitRipeResultData(fruitRipeResultData);
+					fruitRipeResult.setCode("1");
+					String jsonObject = com.alibaba.fastjson.JSONObject
+							.toJSONString(fruitRipeResult);
+					System.out.println("----jsonObject  = " + jsonObject);
+					pushMsg(jsonObject);
+					
+				}else {
+					//  果实为成熟
+				}			
+			}	
+		}
 
 	}
 

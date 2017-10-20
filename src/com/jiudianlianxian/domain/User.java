@@ -27,11 +27,17 @@ public class User {
 	private Long userExperience;
 	//openid  微信用户唯一标识
 	private String openid;
+	//用户性别
 	private int sex;
+	//用户省份
 	private String province;
+	//用户城市
 	private String city;
+	//用户统一标识。针对一个微信开放平台帐号下的应用，同一用户的unionid是唯一的。
 	private String unionid;
+	//用户特权信息，json数组，如微信沃卡用户为（chinaunicom）
 	private String[] privilege ;
+	//国家，如中国为CN
 	private String country;
 	//用户种子集合
 	private Set<Seed> userSeeds = new HashSet<Seed>();

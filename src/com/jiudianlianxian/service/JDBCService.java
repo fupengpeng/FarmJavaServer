@@ -35,12 +35,13 @@ import com.jiudianlianxian.util.JDBCUtil;
  *
  */
 public class JDBCService {
-	String seedState1 = "1";    //种子状态----商店
-	String seedState2 = "2";    //种子状态----背包
-	String seedState3 = "3";    //种子状态----种植
-	String landState1 = "1";    //土地状态----未开垦
-	String landState2 = "2";    //土地状态----未种植，已开垦
-	String landState3 = "3";    //土地状态----已种植，此时土地持有一个种子对象
+	Long seedState1 = 1L;    //种子状态----商店
+	Long seedState2 = 2L;    //种子状态----背包
+	Long seedState3 = 3L;    //种子状态----种植
+	Long landState1 = 1L;    //土地状态----未开垦
+	Long landState2 = 2L;    //土地状态----未种植，已开垦
+	Long landState3 = 3L;    //土地状态----已种植，此时土地持有一个种子对象
+	Long landState4 = 4L;    //土地状态----果实成熟
 	
 	JSONObject jsonObject;
 	String access_token = null;
@@ -260,7 +261,7 @@ public class JDBCService {
 					+ seed.getSeedId();
 			
 			// 4-3.改变土地状态
-			String updateLandState = "update farm_land set landState='" + landState2  + "' WHERE landId="
+			String updateLandState = "update farm_land set landState=" + landState2  + " WHERE landId="
 					+ landId;
 			// 4-4.改变用户经验值
 			String updateUserExperience = "update farm_user set userExperience="
@@ -362,8 +363,8 @@ public class JDBCService {
 			try {
 				while (rs2.next()) {
 					land.setLandId(rs2.getLong(1));
-					land.setLandName(rs2.getString(2));
-					land.setLandState(rs2.getString(3));
+					land.setLandName(rs2.getLong(2));
+					land.setLandState(rs2.getLong(3));
 					System.out.println("传入landId的土地状态    landState = "
 							+ land.getLandState());
 				}
@@ -374,8 +375,8 @@ public class JDBCService {
 			}
 
 			// 4.判断此土地状态是否为2（已开垦，未种植），给予客户提示
-			if (landState1.equals(land.getLandState())
-					|| landState3.equals(land.getLandState())) {
+			if (landState1 == land.getLandState()
+					|| landState3 == land.getLandState()) {
 				// 土地状态为1或者3，即土地已种植或者未开垦，提示用户不可以种植。
 				return plantResultData;
 			} else {
@@ -440,8 +441,8 @@ public class JDBCService {
 					e.printStackTrace();
 				}
 				// 5-2.改变土地状态
-				String sql3 = "UPDATE farm_land SET " + "landState='"
-						+ landState1 + "' " + "WHERE landId=" + landId + ";";
+				String sql3 = "UPDATE farm_land SET " + "landState="
+						+ landState1 + " WHERE landId=" + landId + ";";
 				System.out.println("改变id为landId的土地状态        landState =  "
 						+ land.getLandState());
 				System.out.println("sql4 = " + sql3);
@@ -453,7 +454,7 @@ public class JDBCService {
 				// 5-3.监视种子生长情况，实时给客户返回信息，每隔1分钟给客户端发送一次消息
 				// 5-4.种子生长成果实，提示客户收取果实
 				plantResultData.setSeedNumber(seed.getSeedNumber() - 1);
-				land.setLandState("1");
+				land.setLandState(1L);
 				plantResultData.setLand(land);
 				return plantResultData;
 			}
@@ -480,8 +481,8 @@ public class JDBCService {
 			while (rs.next()) {
 				Land land = new Land();
 				land.setLandId(rs.getLong(1));
-				land.setLandName(rs.getString(2));
-				land.setLandState(rs.getString(3));
+				land.setLandName(rs.getLong(2));
+				land.setLandState(rs.getLong(3));
 				lands.add(land);
 
 			}
@@ -573,7 +574,7 @@ public class JDBCService {
 			Long seedNumberStateTwo = null; // 已购买的种子数量
 			
 			String sql3 = "select * from farm_seed where userId=" + userId
-					+ " and seedState='" + seedState2 + "' and seedName='"
+					+ " and seedState=" + seedState2 + " and seedName='"
 					+ seed.getSeedName() + "'";
 			System.out.println("sql3 = " + sql3);
 			b = false;
@@ -696,7 +697,7 @@ public class JDBCService {
 
 		// 2.查询已购买种子信息，保存到返回数据实体中
 		String sql = "select * from farm_seed where userId=" + userId
-				+ " and seedState='"+ seedState2 +"' ";
+				+ " and seedState="+ seedState2 ;
 		System.out.println("sql = " + sql);
 		ResultSet rs = JDBCUtil.executeQuery(sql);
 		List<Seed> seeds = new ArrayList<Seed>();
@@ -868,7 +869,7 @@ public class JDBCService {
 		GetSeedMsgResultData getSeedMsgResultData = new GetSeedMsgResultData();
 
 		// 1.获取
-		String sql = "select * from farm_seed where seedState='" +  seedState2  + "' and userId="
+		String sql = "select * from farm_seed where seedState=" +  seedState2  + " and userId="
 				+ userId;
 		List<Seed> seeds = new ArrayList<Seed>();
 		System.out.println("sql = " + sql);

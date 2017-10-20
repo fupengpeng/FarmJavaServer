@@ -17,16 +17,18 @@ import com.jiudianlianxian.domain.User;
  */
 public class HarvestResultData {
 	
-	private String landState;
+	private Long landState;
 	private Long userId;
 	private Long userExperience;
 	private Long seedExperience;
 	private Long landId;
 	private Long fruitNumber;
-	public String getLandState() {
+	
+	
+	public Long getLandState() {
 		return landState;
 	}
-	public void setLandState(String landState) {
+	public void setLandState(Long landState) {
 		this.landState = landState;
 	}
 	public Long getUserId() {

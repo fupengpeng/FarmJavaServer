@@ -559,8 +559,8 @@ public class SqlTest {
 				while (rs1.next()) {
 					Land land = new Land();
 					land.setLandId(rs1.getLong(1));
-					land.setLandName(rs1.getString(2));
-					land.setLandState(rs1.getString(3));
+					land.setLandName(rs1.getLong(2));
+					land.setLandState(rs1.getLong(3));
 					lands.add(land);
 				}
 			} catch (SQLException e) {
