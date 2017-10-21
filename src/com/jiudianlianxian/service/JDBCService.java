@@ -114,9 +114,9 @@ public class JDBCService {
 				JDBCUtil.close(rs2, JDBCUtil.getPs(), JDBCUtil.getConnection());
 			}
 			
-			// 4.改变果实数量
+			// 4.改变数据库果实数量
 			System.out.println("果实本身数量 = " + fruit.getFruitNumber());
-			fruit.setFruitNumber(fruit.getFruitNumber() - fruitNumber);
+			fruit.setFruitNumber(fruit.getFruitNumber());
 			System.out.println("出售果实后果实fruitNumber = " + fruit.getFruitNumber());
 			String updateFruitNumber = "update farm_fruit set fruitNumber="+ (fruit.getFruitNumber() - fruitNumber) +" WHERE fruitId="
 					+ fruitId;
@@ -135,12 +135,16 @@ public class JDBCService {
 				e.printStackTrace();
 			}
 			// 6.设置返回数据，并返回
+			fruit.setFruitNumber(fruit.getFruitNumber() - fruitNumber);  //返回给用户数据库果实数量
 			sellFruitResultData.setFruit(fruit);
 			sellFruitResultData.setUserGold(fruitNumber*fruit.getFruitSellingPrice() + userGold);
 			
 			return sellFruitResultData;
 		} else {
 			// 数据库果实数量小雨传入的数量
+			
+			sellFruitResultData.setFruit(fruit);
+			
 			return sellFruitResultData;
 		}
 

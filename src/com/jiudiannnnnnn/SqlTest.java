@@ -93,11 +93,11 @@ public class SqlTest {
 		SqlTest sqlTest = new SqlTest();
 		// sqlTest.buy();
 		// sqlTest.plant();
-		 sqlTest.login();
+//		 sqlTest.login();
 //		sqlTest.harvest();
 //		sqlTest.warehouse();
 //		sqlTest.parcel();
-//		sqlTest.sell();
+		sqlTest.sell();
 
 	}
 	
@@ -108,7 +108,8 @@ public class SqlTest {
 		Long fruitNumber = (long) 5;
 		SellFruitResultData sellFruitResultData = jdbcService
 				.sellFruit(userId, fruitId, fruitNumber);
-		
+		Date date = new Date();
+		System.out.println("请求时间：" + date.getHours()  + " 时   " + date.getMinutes() + " 分    " + date.getSeconds() + " 秒 ");
 		SellFruitResult sellFruitResult = new SellFruitResult();
 		sellFruitResult.setInfo(info);
 		if (sellFruitResultData != null) {

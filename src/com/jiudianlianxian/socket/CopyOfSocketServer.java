@@ -185,8 +185,9 @@ public class CopyOfSocketServer extends ServerSocket {
 							System.out.println("info  == " + info);
 							String jsonObject;
 							
-							
-							
+							Date date = new Date();
+							System.out.println("请求时间：" + date.getHours()  + " 时   " + date.getMinutes() + " 分    " + date.getSeconds() + " 秒 ");
+				
 							
 							if ("login".equals(info)) {
 								// 如果是登录请求，则获取到登录的用户名和密码，进行数据库查询数据，是否用户名和密码争取，如果正确，则返回个用户登录成功的提示
