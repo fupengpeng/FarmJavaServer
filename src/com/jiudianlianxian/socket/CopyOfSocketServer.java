@@ -18,6 +18,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Map.Entry;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -37,6 +39,7 @@ import com.jiudianlianxian.bean.HarvestResult;
 import com.jiudianlianxian.bean.LoginResult;
 import com.jiudianlianxian.bean.OpenWarehouseResult;
 import com.jiudianlianxian.bean.PlantResult;
+import com.jiudianlianxian.bean.PlantTimeResult;
 import com.jiudianlianxian.bean.SeedMsgAllResult;
 import com.jiudianlianxian.bean.SellFruitResult;
 import com.jiudianlianxian.data.BuySeedResultData;
@@ -65,6 +68,13 @@ public class CopyOfSocketServer extends ServerSocket {
 	private static final int SERVER_PORT = 8944; // 服务端端口
 	private static final String END_MARK = "quit"; // 断开连接标识
 	private static final String VIEW_USER = "viewuser"; // 查看连接客户端列表
+	Long seedState1 = 1L;    //种子状态----商店
+	Long seedState2 = 2L;    //种子状态----背包
+	Long seedState3 = 3L;    //种子状态----种植
+	Long landState1 = 1L;    //土地状态----未开垦
+	Long landState2 = 2L;    //土地状态----未种植，已开垦
+	Long landState3 = 3L;    //土地状态----已种植，此时土地持有一个种子对象
+	Long landState4 = 4L;    //土地状态----果实成熟
 
 	private static List<String> userList = new CopyOnWriteArrayList<String>();
 	private static List<DisposeAffair> threadList = new ArrayList<DisposeAffair>(); // 服务器已启用线程集合
@@ -160,6 +170,11 @@ public class CopyOfSocketServer extends ServerSocket {
 
 				boolean issocket = socket.isConnected();
 				while (issocket) {
+					
+					User user = new User();
+					
+					
+					
 					socket.sendUrgentData(0);
 					String msg = null;
 					String jsonData = null;
@@ -206,12 +221,12 @@ public class CopyOfSocketServer extends ServerSocket {
 												+ unionID.getAccess_token()
 												+ "    getOpenid = "
 												+ unionID.getOpenid());
-								User user = new User();
+								
 								if (queryUser(user, unionID.getOpenid())) {
 									System.out
 											.println("数据库中查询到此openid用户的数据，返回给客户端");
 									// TODO 待完善，种子成熟信息的发送
-//										furitRipe(user);	
+									
 									
 
 
@@ -450,9 +465,11 @@ public class CopyOfSocketServer extends ServerSocket {
 								PlantResult plantResult = new PlantResult();
 								PlantResultData plantResultData = jdbcService
 										.plant(userId, seedId, landId);
+								
 								plantResult.setInfo(info);
 								if (plantResultData != null) {
 									plantResult.setCode("1");
+									plantResultData.setSeedId(seedId);
 									plantResult
 											.setPlantResultData(plantResultData);
 									jsonObject = com.alibaba.fastjson.JSONObject
@@ -591,7 +608,50 @@ public class CopyOfSocketServer extends ServerSocket {
 											+ jsonObject);
 									pushMsg(jsonObject);
 								}
+							}else if ("planttime".equals(info)) {
+								Long userId = Long.valueOf(json
+										.getString("userId"));
+								Long landId = Long.valueOf(json
+										.getString("landId"));
+								//种子生长时间
+								PlantTimeResult plantTimeResult = new PlantTimeResult();
+								plantTimeResult.setInfo(info);
+								Long plantTime = jdbcService.getPlantTime(userId,landId);
+								if (plantTime > 0) {
+									plantTimeResult.setCode("1");
+									plantTimeResult.setPlantTime(plantTime);
+									jsonObject = com.alibaba.fastjson.JSONObject
+											.toJSONString(plantTimeResult);
+									System.out.println("jsonObject  = "
+											+ jsonObject);
+									pushMsg(jsonObject);
+								} else {
+									plantTimeResult.setCode("0");
+									plantTimeResult
+											.setPlantTime(plantTime);
+									jsonObject = com.alibaba.fastjson.JSONObject
+											.toJSONString(plantTimeResult);
+									System.out.println("jsonObject  = "
+											+ jsonObject);
+									pushMsg(jsonObject);
+								}
+								
 							}
+							
+							
+							Date date1 = new Date();
+							Timer timer = new Timer();
+							TimerTask timerTask = new TimerTask() {
+								@Override
+								public void run() {
+									furitRipe(user);
+									System.out.println("执行任务 ");
+								}
+							};
+							long timestamp = 600000; 
+//							long timestamp = 1000; 
+							timer.schedule(timerTask, date1,timestamp);
+							
 
 							if (VIEW_USER.equals(msg)) { // 查看已连接客户端
 								sendMsg(onlineUsers());
@@ -656,14 +716,18 @@ public class CopyOfSocketServer extends ServerSocket {
 			}
 			System.out.println("seeds = " + ripeMessages.toString());
 			for (RipeMessage ripeMessage : ripeMessages) {
+				
 				Long plantTime = ripeMessage.getSeedPlantTime();
 				Long currentTime = new Date().getTime();
 				Long growthTime = ripeMessage.getSeedGrowthTime();
 				FruitRipeResult fruitRipeResult = new FruitRipeResult();
 				fruitRipeResult.setInfo("fruitRipe");
 				FruitRipeResultData fruitRipeResultData = new FruitRipeResultData();
+				System.out.println("plantTime + growthTime - 600000 = " + (plantTime + growthTime - 600000) + "  " + new Date((plantTime + growthTime - 600000)));
 				
-				if (currentTime >= (plantTime + growthTime)) {
+				System.out.println("currentTime = " + currentTime + "  " + new Date(currentTime));
+				if ((plantTime + growthTime - 300000) >= currentTime && currentTime >= (plantTime + growthTime + 300000)) {
+					//1.根据seedId获取landId
 					Long landId = null;
 					String sql1 = "select * from land_seed where seedId=" + ripeMessage.getSeedId();
 					System.out.println("sql1 = " + sql1);
@@ -676,6 +740,15 @@ public class CopyOfSocketServer extends ServerSocket {
 						e.printStackTrace();
 					} finally {
 						JDBCUtil.close(rs1, JDBCUtil.getPs(), JDBCUtil.getConnection());
+					}
+					//2.根据landId改变土地状态
+					String sql3 = "UPDATE farm_land SET " + "landState="
+							+ landState4 + " WHERE landId=" + landId + ";";
+					System.out.println("sql3 = " + sql3);
+					try {
+						JDBCUtil.executeUpdate(sql3);
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
 					
 					
@@ -692,6 +765,11 @@ public class CopyOfSocketServer extends ServerSocket {
 					
 				}else {
 					//  果实为成熟
+					fruitRipeResult.setCode("果实未成熟");
+					jsonObject = com.alibaba.fastjson.JSONObject
+							.toJSONString(fruitRipeResult);
+//					System.out.println("----jsonObject  = " + jsonObject);
+//					pushMsg(jsonObject);
 				}			
 			}
 		}

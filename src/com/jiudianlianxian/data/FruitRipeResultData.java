@@ -15,6 +15,7 @@ public class FruitRipeResultData {
 	
 	private Long userId;
 	private Long landId;
+	private String landName;
 	private Long landState;
 	
 	
@@ -36,6 +37,12 @@ public class FruitRipeResultData {
 	}
 	public void setLandId(Long landId) {
 		this.landId = landId;
+	}
+	public String getLandName() {
+		return landName;
+	}
+	public void setLandName(String landName) {
+		this.landName = landName;
 	}
 	
 

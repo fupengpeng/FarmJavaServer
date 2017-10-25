@@ -17,6 +17,15 @@ public class PlantResultData {
 	
 	private Land land;
 	private int seedNumber;
+	private String seedName;
+	private Long seedId;
+	
+	public Long getSeedId() {
+		return seedId;
+	}
+	public void setSeedId(Long seedId) {
+		this.seedId = seedId;
+	}
 	public Land getLand() {
 		return land;
 	}
@@ -28,6 +37,19 @@ public class PlantResultData {
 	}
 	public void setSeedNumber(int seedNumber) {
 		this.seedNumber = seedNumber;
+	}
+	
+	
+	public String getSeedName() {
+		return seedName;
+	}
+	public void setSeedName(String seedName) {
+		this.seedName = seedName;
+	}
+	@Override
+	public String toString() {
+		return "PlantResultData [land=" + land + ", seedNumber=" + seedNumber
+				+ ", seedId=" + seedId + "]";
 	}
 	
 	

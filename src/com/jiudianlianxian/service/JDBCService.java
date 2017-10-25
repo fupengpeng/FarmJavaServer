@@ -324,7 +324,8 @@ public class JDBCService {
 	 */
 	public PlantResultData plant(Long userId, Long seedId, Long landId) {
 		PlantResultData plantResultData = new PlantResultData();
-
+		Long seedid = plantResultData.getSeedId();
+		System.out.println("seedid = " + seedid);
 		// 1.查询种子列表，获取此种子信息
 		Seed seed = new Seed(); // 传入seedId的种子信息
 		String sql1 = "select * from farm_seed where seedId=" + seedId;
@@ -354,11 +355,15 @@ public class JDBCService {
 		} finally {
 			JDBCUtil.close(rs1, JDBCUtil.getPs(), JDBCUtil.getConnection());
 		}
+		
+		System.out.println("seedi-=-d = " + seedid);
 		// 2.判断次种子数量是否大于0，给予客户提示
-		if (seed.getSeedNumber() < 0) { // 没有此种子，需要购买
+		if (seed.getSeedNumber() <= 0) { // 没有此种子，需要购买
 			// 返回空的数据，没有此种子需要购买
+			System.out.println("plantResultData----" + plantResultData );
 			return plantResultData;
 		} else {
+			System.out.println("seedid    tt= " + seedid);
 			// 3.查询土地列表，获取此土地状态
 			Land land = new Land(); // 传入landId的土地信息
 			String sql2 = "select * from farm_land where landId=" + landId;
@@ -377,13 +382,16 @@ public class JDBCService {
 			} finally {
 				JDBCUtil.close(rs2, JDBCUtil.getPs(), JDBCUtil.getConnection());
 			}
-
+			System.out.println("sesdsdsdsdsdsdedid = " + seedid);
 			// 4.判断此土地状态是否为2（已开垦，未种植），给予客户提示
 			if (landState1 == land.getLandState()
 					|| landState3 == land.getLandState()) {
 				// 土地状态为1或者3，即土地已种植或者未开垦，提示用户不可以种植。
+				System.out.println("seedid =----------------- " + seedid);
+				System.out.println("plantResultData====" + plantResultData );
 				return plantResultData;
 			} else {
+				System.out.println("seebbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbdid = " + seedid);
 				// 5.种植
 				// 5-1.改变背包中种子数量
 				// 5-1-1.减少传入seedId种子数量
@@ -446,7 +454,7 @@ public class JDBCService {
 				}
 				// 5-2.改变土地状态
 				String sql3 = "UPDATE farm_land SET " + "landState="
-						+ landState1 + " WHERE landId=" + landId + ";";
+						+ landState3 + " WHERE landId=" + landId + ";";
 				System.out.println("改变id为landId的土地状态        landState =  "
 						+ land.getLandState());
 				System.out.println("sql4 = " + sql3);
@@ -458,7 +466,8 @@ public class JDBCService {
 				// 5-3.监视种子生长情况，实时给客户返回信息，每隔1分钟给客户端发送一次消息
 				// 5-4.种子生长成果实，提示客户收取果实
 				plantResultData.setSeedNumber(seed.getSeedNumber() - 1);
-				land.setLandState(1L);
+				plantResultData.setSeedName(seed.getSeedName());
+				land.setLandState(seedState3);
 				plantResultData.setLand(land);
 				return plantResultData;
 			}
@@ -542,13 +551,13 @@ public class JDBCService {
 		}
 
 		// 2.查询用户金币信息，
-		int userGold = 0; // 用户所有的金币数量
+		Long userGold = (long) 0; // 用户所有的金币数量
 		String sql2 = "select * from farm_user where userId=" + userId;
 		System.out.println("sql2 = " + sql2);
 		ResultSet rs2 = JDBCUtil.executeQuery(sql2);
 		try {
 			while (rs2.next()) {
-				userGold = rs2.getInt(4);
+				userGold = rs2.getLong(4);
 				System.out.println("用户金币数    price2 = " + userGold);
 			}
 		} catch (SQLException e) {
@@ -603,7 +612,6 @@ public class JDBCService {
 			System.out.println("b = " + b);
 			if (b) { // 3-2-1.用户购买过名称为seedName的种子
 				// 改变用户已有的该种子数量
-
 				String sql5 = "UPDATE farm_seed SET " + "seedNumber="
 						+ (seedNumberStateTwo + seedNumber) + " WHERE seedId="
 						+ seedIdStateTwo + ";";
@@ -706,8 +714,6 @@ public class JDBCService {
 		ResultSet rs = JDBCUtil.executeQuery(sql);
 		List<Seed> seeds = new ArrayList<Seed>();
 		try {
-			// 查询数据库,获取上述uid对应的数据
-
 			while (rs.next()) {
 				Seed seed = new Seed();
 				seed.setSeedId(rs.getLong(1));
@@ -721,7 +727,7 @@ public class JDBCService {
 				seed.setSeedFruitSellingPrice(rs.getLong(9));
 				seed.setSeedType(rs.getLong(10));
 				seed.setSeedImage(rs.getString(11));
-
+				seed.setSeedNumber(rs.getInt(12));
 				seeds.add(seed);
 			}
 		} catch (SQLException e) {
@@ -904,5 +910,50 @@ public class JDBCService {
 		}
 		getSeedMsgResultData.setSeeds(seeds);
 		return getSeedMsgResultData;
+	}
+	/**
+	 * 
+	 * @Description: 获取土地上种子的种植时间
+	 * @param userId
+	 * @param landId
+	 * @return
+	 */
+	public Long getPlantTime(Long userId, Long landId) {
+		//1.根据传入的landId查询land_seed表，获取seedId
+		Long seedId = null;
+		Long plantTime = null;
+		String sql1 = "select * from land_seed where landId=" + landId;
+		System.out.println("sql1 = " + sql1);
+		ResultSet rs1 = JDBCUtil.executeQuery(sql1);
+		try {
+			while (rs1.next()) {
+				seedId = rs1.getLong(2);
+
+				System.out.println("传入土地上种植的种子id  = "
+						+ seedId);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			JDBCUtil.close(rs1, JDBCUtil.getPs(), JDBCUtil.getConnection());
+		}
+		//2.根据获取到的seedId和传入的userId,查询farm_seed表获取seedPlantTime
+		String sql2 = "select * from farm_seed where seedId=" + seedId + " and userId=" + userId;
+		System.out.println("sql2 = " + sql2);
+		ResultSet rs2 = JDBCUtil.executeQuery(sql2);
+		try {
+			while (rs2.next()) {
+				plantTime = rs2.getLong(14);
+
+				System.out.println("传入土地上种植的种子种植时间  = "
+						+ plantTime);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			JDBCUtil.close(rs2, JDBCUtil.getPs(), JDBCUtil.getConnection());
+		}
+		
+		return plantTime;
 	}
 }
