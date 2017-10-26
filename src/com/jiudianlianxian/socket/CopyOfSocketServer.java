@@ -39,7 +39,7 @@ import com.jiudianlianxian.bean.HarvestResult;
 import com.jiudianlianxian.bean.LoginResult;
 import com.jiudianlianxian.bean.OpenWarehouseResult;
 import com.jiudianlianxian.bean.PlantResult;
-import com.jiudianlianxian.bean.PlantTimeResult;
+import com.jiudianlianxian.bean.ResidueTimeResult;
 import com.jiudianlianxian.bean.SeedMsgAllResult;
 import com.jiudianlianxian.bean.SellFruitResult;
 import com.jiudianlianxian.data.BuySeedResultData;
@@ -92,6 +92,20 @@ public class CopyOfSocketServer extends ServerSocket {
 	 */
 	public static void main(String[] args) {
 		try {
+			
+			Date date1 = new Date();
+			Timer timer = new Timer();
+			TimerTask timerTask = new TimerTask() {
+				@Override
+				public void run() {
+					furitRipe();
+					System.out.println("----执行任务 ");
+				}
+			};
+//			long timestamp = 60000; 
+			long timestamp = 1000; 
+			timer.schedule(timerTask, date1,timestamp);
+			
 			server = new CopyOfSocketServer(); // 启动服务端
 			server.load();
 
@@ -99,6 +113,68 @@ public class CopyOfSocketServer extends ServerSocket {
 			e.printStackTrace();
 		}
 	}
+	private static void furitRipe() {
+		//1.查询farm_seed表，获取seedState为3的种子集合
+		Long landState4 = 4L;
+		//2.遍历种子集合得到种子信息
+		List<RipeMessage> ripeMessages = new ArrayList<RipeMessage>();
+		String sql = "select * from farm_seed where seedState=3 ";
+//		System.out.println("sql---- = " + sql);
+		ResultSet rs = JDBCUtil.executeQuery(sql);
+		try {
+			while (rs.next()) {
+				RipeMessage ripeMessage = new RipeMessage();
+				ripeMessage.setSeedId(rs.getLong(1));
+				ripeMessage.setSeedGrowthTime(rs.getLong(4));
+				ripeMessage.setSeedPlantTime(rs.getLong(14));
+				ripeMessages.add(ripeMessage);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			JDBCUtil.close(rs, JDBCUtil.getPs(), JDBCUtil.getConnection());
+		}
+//		System.out.println("----seeds = " + ripeMessages.toString());
+		for (RipeMessage ripeMessage : ripeMessages) {
+			
+			Long plantTime = ripeMessage.getSeedPlantTime();   //种植时间
+			Long currentTime = new Date().getTime();           //当前时间
+			Long growthTime = ripeMessage.getSeedGrowthTime();  //生长时间
+			Long harvestTime = plantTime + growthTime;          //收获时间
+//			System.out.println("----plantTime + growthTime - 600000 = " + (plantTime + growthTime - 600000) + "  " + new Date((plantTime + growthTime - 600000)));
+			
+//			System.out.println("----currentTime = " + currentTime + "  " + new Date(currentTime));
+			if ((harvestTime + 300000) >= currentTime && currentTime >= harvestTime) {
+				//1.根据seedId获取landId   (harvestTime + 300000) >= currentTime || 
+				Long landId = null;
+				String sql1 = "select * from land_seed where seedId=" + ripeMessage.getSeedId();
+//				System.out.println("----sql1 = " + sql1);
+				ResultSet rs1 = JDBCUtil.executeQuery(sql1);
+				try {
+					while (rs1.next()) {
+						landId = rs1.getLong(1);
+//						System.out.println("获取到传入seedid的土地id landId = " + landId   +  "    rs1.getLong(2) = " + rs1.getLong(2));
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				} finally {
+					JDBCUtil.close(rs1, JDBCUtil.getPs(), JDBCUtil.getConnection());
+				}
+				//2.根据landId改变土地状态
+				String sql3 = "UPDATE farm_land SET " + "landState="
+						+ landState4 + " WHERE landId=" + landId + ";";
+//				System.out.println("----sql3 = " + sql3);
+				try {
+					JDBCUtil.executeUpdate(sql3);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}	
+			}else {
+//				System.out.println("-=--------------------------");
+			}	
+		}
+	}
+
 
 	public CopyOfSocketServer() throws Exception {
 		super(SERVER_PORT);
@@ -614,23 +690,23 @@ public class CopyOfSocketServer extends ServerSocket {
 								Long landId = Long.valueOf(json
 										.getString("landId"));
 								//种子生长时间
-								PlantTimeResult plantTimeResult = new PlantTimeResult();
-								plantTimeResult.setInfo(info);
-								Long plantTime = jdbcService.getPlantTime(userId,landId);
-								if (plantTime > 0) {
-									plantTimeResult.setCode("1");
-									plantTimeResult.setPlantTime(plantTime);
+								ResidueTimeResult residueTimeResult = new ResidueTimeResult();
+								residueTimeResult.setInfo(info);
+								Long residueTime = jdbcService.getResidueTime(userId,landId);
+								if (residueTime >= 0) {
+									residueTimeResult.setCode("1");
+									residueTimeResult.setResidueTime(residueTime);
 									jsonObject = com.alibaba.fastjson.JSONObject
-											.toJSONString(plantTimeResult);
+											.toJSONString(residueTimeResult);
 									System.out.println("jsonObject  = "
 											+ jsonObject);
 									pushMsg(jsonObject);
 								} else {
-									plantTimeResult.setCode("0");
-									plantTimeResult
-											.setPlantTime(plantTime);
+									residueTimeResult.setCode("0");
+									residueTimeResult
+											.setResidueTime(residueTime);
 									jsonObject = com.alibaba.fastjson.JSONObject
-											.toJSONString(plantTimeResult);
+											.toJSONString(residueTimeResult);
 									System.out.println("jsonObject  = "
 											+ jsonObject);
 									pushMsg(jsonObject);
@@ -648,8 +724,8 @@ public class CopyOfSocketServer extends ServerSocket {
 									System.out.println("执行任务 ");
 								}
 							};
-							long timestamp = 600000; 
-//							long timestamp = 1000; 
+//							long timestamp = 600000;  
+							long timestamp = 1000; 
 							timer.schedule(timerTask, date1,timestamp);
 							
 
@@ -693,19 +769,55 @@ public class CopyOfSocketServer extends ServerSocket {
 
 		private void furitRipe(User user) {
 			String jsonObject;
+//			//1.查询farm_seed表，获取seedState为3的种子集合
+//			
+//			//2.遍历种子集合得到种子信息
+//			List<RipeMessage> ripeMessages = new ArrayList<RipeMessage>();
+//			String sql = "select * from farm_seed where seedState=3 and userId=" + user.getUserId();
+//			System.out.println("sql = " + sql);
+//			ResultSet rs = JDBCUtil.executeQuery(sql);
+//			try {
+//				while (rs.next()) {
+//					RipeMessage ripeMessage = new RipeMessage();
+//					ripeMessage.setSeedId(rs.getLong(1));
+//					ripeMessage.setSeedGrowthTime(rs.getLong(4));
+//					ripeMessage.setUserId(rs.getLong(13));
+//					ripeMessage.setSeedPlantTime(rs.getLong(14));
+//					ripeMessages.add(ripeMessage);
+//				}
+//			} catch (SQLException e) {
+//				e.printStackTrace();
+//			} finally {
+//				JDBCUtil.close(rs, JDBCUtil.getPs(), JDBCUtil.getConnection());
+//			}
+//			System.out.println("seeds = " + ripeMessages.toString());
+//			for (RipeMessage ripeMessage : ripeMessages) {
+//				
+//				Long plantTime = ripeMessage.getSeedPlantTime();
+//				Long currentTime = new Date().getTime();
+//				Long growthTime = ripeMessage.getSeedGrowthTime();
+//				FruitRipeResult fruitRipeResult = new FruitRipeResult();
+//				fruitRipeResult.setInfo("fruitRipe");
+//				
+//				System.out.println("plantTime + growthTime - 600000 = " + (plantTime + growthTime - 600000) + "  " + new Date((plantTime + growthTime - 600000)));
+//				
+//				System.out.println("currentTime = " + currentTime + "  " + new Date(currentTime));
+//				if ((plantTime + growthTime - 300000) >= currentTime && currentTime >= (plantTime + growthTime + 300000)) {
 			//1.查询farm_seed表，获取seedState为3的种子集合
-			
+			FruitRipeResult fruitRipeResult = new FruitRipeResult();
+			fruitRipeResult.setInfo("fruitRipe");
+			FruitRipeResultData fruitRipeResultData = new FruitRipeResultData();
+			Long landState4 = 4L;
 			//2.遍历种子集合得到种子信息
 			List<RipeMessage> ripeMessages = new ArrayList<RipeMessage>();
 			String sql = "select * from farm_seed where seedState=3 and userId=" + user.getUserId();
-			System.out.println("sql = " + sql);
+//			System.out.println("sql---- = " + sql);
 			ResultSet rs = JDBCUtil.executeQuery(sql);
 			try {
 				while (rs.next()) {
 					RipeMessage ripeMessage = new RipeMessage();
 					ripeMessage.setSeedId(rs.getLong(1));
 					ripeMessage.setSeedGrowthTime(rs.getLong(4));
-					ripeMessage.setUserId(rs.getLong(13));
 					ripeMessage.setSeedPlantTime(rs.getLong(14));
 					ripeMessages.add(ripeMessage);
 				}
@@ -714,24 +826,25 @@ public class CopyOfSocketServer extends ServerSocket {
 			} finally {
 				JDBCUtil.close(rs, JDBCUtil.getPs(), JDBCUtil.getConnection());
 			}
-			System.out.println("seeds = " + ripeMessages.toString());
+//			System.out.println("----seeds = " + ripeMessages.toString());
+			
 			for (RipeMessage ripeMessage : ripeMessages) {
 				
-				Long plantTime = ripeMessage.getSeedPlantTime();
-				Long currentTime = new Date().getTime();
-				Long growthTime = ripeMessage.getSeedGrowthTime();
-				FruitRipeResult fruitRipeResult = new FruitRipeResult();
-				fruitRipeResult.setInfo("fruitRipe");
-				FruitRipeResultData fruitRipeResultData = new FruitRipeResultData();
-				System.out.println("plantTime + growthTime - 600000 = " + (plantTime + growthTime - 600000) + "  " + new Date((plantTime + growthTime - 600000)));
+				Long plantTime = ripeMessage.getSeedPlantTime();   //种植时间
+				Long currentTime = new Date().getTime();           //当前时间
+				Long growthTime = ripeMessage.getSeedGrowthTime();  //生长时间
+				Long harvestTime = plantTime + growthTime;          //收获时间
+//				System.out.println("----plantTime + growthTime - 600000 = " + (plantTime + growthTime - 600000) + "  " + new Date((plantTime + growthTime - 600000)));
 				
-				System.out.println("currentTime = " + currentTime + "  " + new Date(currentTime));
-				if ((plantTime + growthTime - 300000) >= currentTime && currentTime >= (plantTime + growthTime + 300000)) {
+//				System.out.println("----currentTime = " + currentTime + "  " + new Date(currentTime));
+//				if ((harvestTime + 300000) >= currentTime && currentTime >= harvestTime) {
+				
+				if ((harvestTime + 100) >= currentTime && currentTime >= harvestTime) {
 					//1.根据seedId获取landId
 					Long landId = null;
 					String sql1 = "select * from land_seed where seedId=" + ripeMessage.getSeedId();
 					System.out.println("sql1 = " + sql1);
-					ResultSet rs1 = JDBCUtil.executeQuery(sql);
+					ResultSet rs1 = JDBCUtil.executeQuery(sql1);
 					try {
 						while (rs1.next()) {
 							landId = rs1.getLong(1);
@@ -761,7 +874,12 @@ public class CopyOfSocketServer extends ServerSocket {
 					jsonObject = com.alibaba.fastjson.JSONObject
 							.toJSONString(fruitRipeResult);
 					System.out.println("----jsonObject  = " + jsonObject);
-					pushMsg(jsonObject);
+					int a = 0 ;
+					if (a == 0 ) {
+						pushMsg(jsonObject);
+						a = 1;
+					}
+					
 					
 				}else {
 					//  果实为成熟
@@ -863,9 +981,8 @@ public class CopyOfSocketServer extends ServerSocket {
 		 */
 		// 获取到user，并将数据返回给客户端
 		private void resultLoginData(LoginResult loginResult, User user) {
+			//1.根据userId查询用户土地信息
 			List<Land> lands = new ArrayList<Land>();
-			// for (int i = 0; i < 10000; i++) {
-
 			String sql1 = "select * from farm_land where userId="
 					+ user.getUserId();
 			System.out.println("sql1 = " + sql1);
@@ -886,16 +1003,18 @@ public class CopyOfSocketServer extends ServerSocket {
 				JDBCUtil.close(rs1, JDBCUtil.getPs(), JDBCUtil.getConnection());
 			}
 
-			// }
-			// 遍历lands，获取其land对象的landState，
+			// 2.遍历lands，获取其land对象的landState，
 			List<LandData> landDatas = new ArrayList<LandData>();
 			for (Land land : lands) {
+				
 				LandData landData = new LandData();
+				
 				landData.setLandId(land.getLandId());
 				landData.setLandName(land.getLandName());
 				landData.setLandState(land.getLandState());
-				if (land.getLandState() == 3) {
-					// 状态是3即种植状态，查询land_seed表，获取seedId
+				
+				if (land.getLandState() == 3 || land.getLandState() == 4 ) {
+					// 3.状态是3即种植状态，查询land_seed表，获取seedId
 					Long seedId = null;
 					String sql = "select * from land_seed where landId="
 							+ land.getLandId();
@@ -956,73 +1075,6 @@ public class CopyOfSocketServer extends ServerSocket {
 			pushMsg(jsonObject);
 		}
 
-		// private void resultLoginData(LoginResult loginResult, User user) {
-		// List<Land> lands = new ArrayList<Land>();
-		// List<Seed> landSeeds = new ArrayList<Seed>();
-		// String sql1 = "select * from farm_land where userId=" + 1;
-		// // + user.getUserId();
-		// ResultSet rs1 = JDBCUtil.executeQuery(sql1);
-		// try {
-		// // 查询数据库,获取上述uid对应的数据
-		// while (rs1.next()) {
-		// Land land = new Land();
-		// land.setLandId(rs1.getLong(1));
-		// land.setLandName(rs1.getString(2));
-		// land.setLandState(rs1.getString(3));
-		//
-		// // //获取到土地的状态，根据状态是3，土地id查询land_seed表，获取seedid，查询farm_seed表，获取种子信息
-		// // if(land.getLandState().equals("3")){
-		// // String sql2 = "select * from land_seed where landId="
-		// // + land.getLandId();
-		// // ResultSet rs2 = JDBCUtil.executeQuery(sql2);
-		// // try {
-		// // // 查询数据库,获取上述uid对应的数据
-		// // while (rs2.next()) {
-		// // Seed seed = new Seed();
-		// // land.setLandId(rs2.getLong(1));
-		// // land.setLandName(rs2.getString(2));
-		// // land.setLandState(rs2.getString(3));
-		// // landSeeds.add(seed);
-		// // }
-		// // } catch (SQLException e) {
-		// // // TODO Auto-generated catch block
-		// // e.printStackTrace();
-		// // } finally {
-		// // JDBCUtil.close(rs2, JDBCUtil.getPs(), JDBCUtil.getConnection());
-		// // }
-		// // }
-		//
-		//
-		// lands.add(land);
-		// }
-		// } catch (SQLException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// } finally {
-		// JDBCUtil.close(rs1, JDBCUtil.getPs(), JDBCUtil.getConnection());
-		// }
-		//
-		//
-		//
-		// LoginResultData loginResponseData = new LoginResultData();
-		// // user.setUserLands(lands);
-		//
-		// loginResponseData.setUser(user);
-		// // loginResponseData.setLands(lands);
-		// String loginResultData = com.alibaba.fastjson.JSONObject
-		// .toJSONString(loginResponseData);
-		// System.out.println("loginResultData------------  = "
-		// + loginResultData);
-		//
-		//
-		// loginResult.setCode("1");
-		// loginResult.setLoginResponseData(loginResponseData);
-		// String jsonObject = com.alibaba.fastjson.JSONObject
-		// .toJSONString(loginResult);
-		// System.out.println("jsonObject  = " + jsonObject);
-		//
-		// pushMsg(jsonObject);
-		// }
 		
 	
 

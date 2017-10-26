@@ -41,7 +41,7 @@ import com.jiudianlianxian.bean.HarvestResult;
 import com.jiudianlianxian.bean.LoginResult;
 import com.jiudianlianxian.bean.OpenWarehouseResult;
 import com.jiudianlianxian.bean.PlantResult;
-import com.jiudianlianxian.bean.PlantTimeResult;
+import com.jiudianlianxian.bean.ResidueTimeResult;
 import com.jiudianlianxian.bean.SeedMsgAllResult;
 import com.jiudianlianxian.bean.SellFruitResult;
 import com.jiudianlianxian.data.BuySeedResultData;
@@ -113,25 +113,26 @@ public class SqlTest {
 	
 	public void planttime(){
 		Long userId = 1L;
-		Long landId = 1L;
+		Long landId = 2L;
+		System.out.println("---------------" + new Date().getTime());
 		//种子生长时间
-		PlantTimeResult plantTimeResult = new PlantTimeResult();
-		plantTimeResult.setInfo(info);
-		Long plantTime = jdbcService.getPlantTime(userId,landId);
-		if (plantTime > 0) {
-			plantTimeResult.setCode("1");
-			plantTimeResult.setPlantTime(plantTime);
+		ResidueTimeResult residueTimeResult = new ResidueTimeResult();
+		residueTimeResult.setInfo(info);
+		Long residueTime = jdbcService.getResidueTime(userId,landId);
+		if (residueTime >= 0) {
+			residueTimeResult.setCode("1");
+			residueTimeResult.setResidueTime(residueTime);
 			jsonObject = com.alibaba.fastjson.JSONObject
-					.toJSONString(plantTimeResult);
+					.toJSONString(residueTimeResult);
 			System.out.println("jsonObject  = "
 					+ jsonObject);
 			pushMsg(jsonObject);
 		} else {
-			plantTimeResult.setCode("0");
-			plantTimeResult
-					.setPlantTime(plantTime);
+			residueTimeResult.setCode("0");
+			residueTimeResult
+					.setResidueTime(residueTime);
 			jsonObject = com.alibaba.fastjson.JSONObject
-					.toJSONString(plantTimeResult);
+					.toJSONString(residueTimeResult);
 			System.out.println("jsonObject  = "
 					+ jsonObject);
 			pushMsg(jsonObject);
@@ -358,9 +359,9 @@ public class SqlTest {
 
 		// 修改种子数量，种子状态，土地状态，种子生长的过程监控。及时给客户端发送消息
 		// userId seedId landId
-		Long userId = (long) 2;
-		Long seedId = (long) 115;
-		Long landId = (long) 27;
+		Long userId = (long) 1;
+		Long seedId = (long) 104;
+		Long landId = (long) 3;
 
 		PlantResult plantResult = new PlantResult();
 		PlantResultData plantResultData = jdbcService.plant(userId, seedId,

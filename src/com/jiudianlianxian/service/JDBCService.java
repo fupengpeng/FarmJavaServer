@@ -918,10 +918,13 @@ public class JDBCService {
 	 * @param landId
 	 * @return
 	 */
-	public Long getPlantTime(Long userId, Long landId) {
+	public Long getResidueTime(Long userId, Long landId) {
 		//1.根据传入的landId查询land_seed表，获取seedId
 		Long seedId = null;
-		Long plantTime = null;
+		Long plantTime = null;  //种植时间
+		Long growthTime = null;  //生长时间
+		Long residueTime = null;  //剩余时间
+		Long nowTime = new Date().getTime();  //当前时间
 		String sql1 = "select * from land_seed where landId=" + landId;
 		System.out.println("sql1 = " + sql1);
 		ResultSet rs1 = JDBCUtil.executeQuery(sql1);
@@ -943,8 +946,8 @@ public class JDBCService {
 		ResultSet rs2 = JDBCUtil.executeQuery(sql2);
 		try {
 			while (rs2.next()) {
+				growthTime = rs2.getLong(4);
 				plantTime = rs2.getLong(14);
-
 				System.out.println("传入土地上种植的种子种植时间  = "
 						+ plantTime);
 			}
@@ -953,7 +956,12 @@ public class JDBCService {
 		} finally {
 			JDBCUtil.close(rs2, JDBCUtil.getPs(), JDBCUtil.getConnection());
 		}
-		
-		return plantTime;
+		residueTime = (plantTime + growthTime) - nowTime;
+		if (residueTime > 0) {
+			return residueTime;
+		}else {
+			residueTime = 0L;
+			return residueTime;
+		}
 	}
 }

@@ -13,15 +13,16 @@ import com.jiudianlianxian.base.RequestResponseBase;
  * @date 2017年10月25日 下午4:35:23
  *
  */
-public class PlantTimeResult extends RequestResponseBase {
-	private Long plantTime;
+public class ResidueTimeResult extends RequestResponseBase {
+	private Long residueTime;
 
-	public Long getPlantTime() {
-		return plantTime;
+	public Long getResidueTime() {
+		return residueTime;
 	}
 
-	public void setPlantTime(Long plantTime) {
-		this.plantTime = plantTime;
+	public void setResidueTime(Long residueTime) {
+		this.residueTime = residueTime;
 	}
-	
+
+
 }
