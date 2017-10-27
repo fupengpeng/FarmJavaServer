@@ -100,7 +100,8 @@ public class SqlTest {
 		// sqlTest.parcel();
 		// sqlTest.sell();
 //		sqlTest.test14();
-		sqlTest.planttime();
+//		sqlTest.planttime();
+		sqlTest.timing();
 
 	}
 
@@ -109,6 +110,11 @@ public class SqlTest {
 		// 判断用户是否连接，
 		// 根据用户id和土地状态查询数据库，获取种子成熟信息
 		// 遍历判断种子是否成熟，成熟则发送，未成熟则不用管
+		Long time = new Date().getTime();
+		System.out.println("time = " + time);
+		Long currentTime = (time)/1000;
+		
+		System.out.println("currentTime = " + currentTime );
 	}
 	
 	public void planttime(){
@@ -478,12 +484,12 @@ public class SqlTest {
 
 		UnionID unionID = new UnionID();
 		unionID.setOpenid("zhangsan");
-		LoginResult loginResult = new LoginResult();
+		final LoginResult loginResult = new LoginResult();
 		loginResult.setInfo(info);
 		System.out.println("获取到了用户的openid     Access_token = "
 				+ unionID.getAccess_token() + "    getOpenid = "
 				+ unionID.getOpenid());
-		User user = new User();
+		final User user = new User();
 		if (queryUser(user, unionID.getOpenid())) {
 			System.out.println("数据库中查询到此openid用户的数据，返回给客户端");
 
@@ -686,7 +692,7 @@ public class SqlTest {
 	}
 
 	public void test14() {
-		User user = new User();
+		final User user = new User();
 		user.setUserId(7L);
 		Date date1 = new Date();
 		Timer timer = new Timer();
