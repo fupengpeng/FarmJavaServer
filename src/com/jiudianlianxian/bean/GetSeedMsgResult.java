@@ -1,7 +1,6 @@
 package com.jiudianlianxian.bean;
 
 import com.jiudianlianxian.base.RequestResponseBase;
-import com.jiudianlianxian.data.GetLandMsgResultData;
 import com.jiudianlianxian.data.GetSeedMsgResultData;
 
 

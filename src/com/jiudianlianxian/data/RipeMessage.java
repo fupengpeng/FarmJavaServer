@@ -1,4 +1,4 @@
-package com.jiudianlianxian.domain;
+package com.jiudianlianxian.data;
 
 
 /**

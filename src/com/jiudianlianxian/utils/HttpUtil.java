@@ -6,8 +6,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.http.HttpResponse;
@@ -16,9 +14,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
-
-import com.jiudianlianxian.domain.User;
-import com.jiudianlianxian.util.JDBCUtil;
 
 public class HttpUtil {
 	

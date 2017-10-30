@@ -1,13 +1,10 @@
 package com.jiudianlianxian.data;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import com.jiudianlianxian.domain.Land;
+
 import com.jiudianlianxian.domain.Seed;
-import com.jiudianlianxian.domain.User;
 
 
 /**

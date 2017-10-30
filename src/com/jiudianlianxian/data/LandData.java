@@ -1,7 +1,5 @@
-package com.jiudianlianxian.domain;
+package com.jiudianlianxian.data;
 
-import java.util.HashSet;
-import java.util.Set;
 
 
 /**

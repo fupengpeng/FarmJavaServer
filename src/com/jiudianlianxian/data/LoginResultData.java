@@ -3,8 +3,6 @@ package com.jiudianlianxian.data;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.jiudianlianxian.domain.Land;
-import com.jiudianlianxian.domain.LandData;
 import com.jiudianlianxian.domain.User;
 
 public class LoginResultData {

@@ -1,8 +1,6 @@
 package com.jiudianlianxian.data;
 
-import com.jiudianlianxian.domain.Fruit;
-import com.jiudianlianxian.domain.Land;
-import com.jiudianlianxian.domain.User;
+
 
 
 /**
