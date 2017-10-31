@@ -907,7 +907,7 @@ public class SocketServer extends ServerSocket {
 					Long growthTime = (ripeMessage.getSeedGrowthTime()) / 1000; // 生长时间
 					Long harvestTime = plantTime + growthTime; // 收获时间
 
-					if ((harvestTime + 10) >= currentTime
+					if ((harvestTime + 5) >= currentTime
 							&& currentTime >= harvestTime) {
 						Long landIdd = null;
 						String sql1 = "select * from land_seed where seedId="

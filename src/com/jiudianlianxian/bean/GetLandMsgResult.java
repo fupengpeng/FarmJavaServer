@@ -3,7 +3,6 @@ package com.jiudianlianxian.bean;
 import com.jiudianlianxian.base.RequestResponseBase;
 import com.jiudianlianxian.data.GetLandMsgResultData;
 
-
 /**
  * 
  * @Title: GetLandMsgResult
@@ -14,20 +13,17 @@ import com.jiudianlianxian.data.GetLandMsgResultData;
  * @date 2017年9月28日 下午5:03:51
  *
  */
-public class GetLandMsgResult extends RequestResponseBase{
-	
+public class GetLandMsgResult extends RequestResponseBase {
+
 	private GetLandMsgResultData getLandMsgResultData = new GetLandMsgResultData();
 
 	public GetLandMsgResultData getGetLandMsgResultData() {
 		return getLandMsgResultData;
 	}
 
-	public void setGetLandMsgResultData(GetLandMsgResultData getLandMsgResultData) {
+	public void setGetLandMsgResultData(
+			GetLandMsgResultData getLandMsgResultData) {
 		this.getLandMsgResultData = getLandMsgResultData;
 	}
 
-	
-	
-	
-	
 }

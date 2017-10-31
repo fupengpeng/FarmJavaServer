@@ -3,7 +3,6 @@ package com.jiudianlianxian.bean;
 import com.jiudianlianxian.base.RequestResponseBase;
 import com.jiudianlianxian.data.LoginResultData;
 
-
 /**
  * 
  * @Title: LoginResponse
@@ -15,7 +14,7 @@ import com.jiudianlianxian.data.LoginResultData;
  *
  */
 public class LoginResult extends RequestResponseBase {
-	
+
 	private LoginResultData loginResponseData = new LoginResultData();
 
 	public LoginResultData getLoginResponseData() {
@@ -25,6 +24,5 @@ public class LoginResult extends RequestResponseBase {
 	public void setLoginResponseData(LoginResultData loginResponseData) {
 		this.loginResponseData = loginResponseData;
 	}
-	
 
 }

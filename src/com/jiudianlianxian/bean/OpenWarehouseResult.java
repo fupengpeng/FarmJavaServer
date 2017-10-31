@@ -3,7 +3,6 @@ package com.jiudianlianxian.bean;
 import com.jiudianlianxian.base.RequestResponseBase;
 import com.jiudianlianxian.data.OpenWarehouseResultData;
 
-
 /**
  * 
  * @Title: OpenWarehouseResult
@@ -14,8 +13,8 @@ import com.jiudianlianxian.data.OpenWarehouseResultData;
  * @date 2017年10月13日 下午4:36:39
  *
  */
-public class OpenWarehouseResult extends RequestResponseBase{
-	
+public class OpenWarehouseResult extends RequestResponseBase {
+
 	OpenWarehouseResultData openWarehouseResultData = new OpenWarehouseResultData();
 
 	public OpenWarehouseResultData getOpenWarehouseResultData() {
@@ -26,6 +25,5 @@ public class OpenWarehouseResult extends RequestResponseBase{
 			OpenWarehouseResultData openWarehouseResultData) {
 		this.openWarehouseResultData = openWarehouseResultData;
 	}
-	
-	
+
 }

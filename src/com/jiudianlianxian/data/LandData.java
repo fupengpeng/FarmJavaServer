@@ -1,7 +1,5 @@
 package com.jiudianlianxian.data;
 
-
-
 /**
  * 
  * @Title: Land
@@ -13,48 +11,46 @@ package com.jiudianlianxian.data;
  *
  */
 public class LandData {
-	//土地id，主键
+	// 土地id，主键
 	private Long landId;
-	//土地名称
-	private Long landName; 
+	// 土地名称
+	private Long landName;
 	/**
-	 * 土地状态
-	 *     1：土地种植，landSeed有值，为种植的种子对象
-	 *     2：未种植，已开垦
-	 *     3：未开垦
+	 * 土地状态 1：土地种植，landSeed有值，为种植的种子对象 2：未种植，已开垦 3：未开垦
 	 */
 	private Long landState;
 	private String seedName;
-	
-	
+
 	public Long getLandId() {
 		return landId;
 	}
+
 	public void setLandId(Long landId) {
 		this.landId = landId;
 	}
-	
+
 	public Long getLandName() {
 		return landName;
 	}
+
 	public void setLandName(Long landName) {
 		this.landName = landName;
 	}
-	
+
 	public Long getLandState() {
 		return landState;
 	}
+
 	public void setLandState(Long landState) {
 		this.landState = landState;
 	}
+
 	public String getSeedName() {
 		return seedName;
 	}
+
 	public void setSeedName(String seedName) {
 		this.seedName = seedName;
 	}
-
-	
-	
 
 }

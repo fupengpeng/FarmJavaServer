@@ -2,7 +2,6 @@ package com.jiudianlianxian.bean;
 
 import com.jiudianlianxian.base.RequestResponseBase;
 
-
 /**
  * 
  * @Title: PlantTimeResult
@@ -23,6 +22,5 @@ public class ResidueTimeResult extends RequestResponseBase {
 	public void setResidueTime(Long residueTime) {
 		this.residueTime = residueTime;
 	}
-
 
 }

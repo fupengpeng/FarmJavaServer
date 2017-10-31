@@ -3,7 +3,6 @@ package com.jiudianlianxian.bean;
 import com.jiudianlianxian.base.RequestResponseBase;
 import com.jiudianlianxian.data.FruitRipeResultData;
 
-
 /**
  * 
  * @Title: FruitRipeResult
@@ -15,7 +14,7 @@ import com.jiudianlianxian.data.FruitRipeResultData;
  *
  */
 public class FruitRipeResult extends RequestResponseBase {
-	
+
 	private FruitRipeResultData fruitRipeResultData = new FruitRipeResultData();
 
 	public FruitRipeResultData getFruitRipeResultData() {
@@ -25,7 +24,5 @@ public class FruitRipeResult extends RequestResponseBase {
 	public void setFruitRipeResultData(FruitRipeResultData fruitRipeResultData) {
 		this.fruitRipeResultData = fruitRipeResultData;
 	}
-	
-	
-	
+
 }

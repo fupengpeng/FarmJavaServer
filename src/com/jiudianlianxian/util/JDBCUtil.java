@@ -11,8 +11,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 
-
-
 /**
  * 
  * @Title: JDBCUtil
@@ -24,7 +22,7 @@ import java.util.Properties;
  *
  */
 public class JDBCUtil {
-	
+
 	// 定义所需要的变量
 	private static Connection ct = null;
 
@@ -80,7 +78,7 @@ public class JDBCUtil {
 
 		return ct;
 	}
-	
+
 	// 关闭资源的函数
 	public static void close(ResultSet rs, Statement ps, Connection ct) {
 		if (rs != null) {
@@ -129,19 +127,17 @@ public class JDBCUtil {
 	public static CallableStatement getCs() {
 		return cs;
 	}
-	
-	
-	
+
 	// TODO mysql的crud处理
-	
+
 	// 只有一个sql语句 用于 update/delete /insert
 	// sql 格式：update 表名 set 字段名=？ where 字段=？
 	public static void executeUpdate(String sql) {
 		try {
 			// 创建一个ps
 			ct = getConnection();
-			ps = ct.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
-			System.out.println("sql=="+sql);
+			ps = ct.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+			System.out.println("sql==" + sql);
 			// 执行
 			ps.executeUpdate();
 		} catch (SQLException e) {
@@ -152,19 +148,20 @@ public class JDBCUtil {
 		}
 
 	}
+
 	public static Long executeUpdateGetId(String sql) {
-		Long id = null ; 
+		Long id = null;
 		try {
 			// 创建一个ps
 			ct = getConnection();
-			ps = ct.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
-			System.out.println("sql=="+sql);
+			ps = ct.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+			System.out.println("sql==" + sql);
 			// 执行
 			ps.executeUpdate();
-			//执行插入语句时，要获取自动插入的id使用如下方法
-			rs = ps.getGeneratedKeys();  //获取自动生成的键值
+			// 执行插入语句时，要获取自动插入的id使用如下方法
+			rs = ps.getGeneratedKeys(); // 获取自动生成的键值
 			rs.next();
-			id = rs.getLong(1);  //得到键值并输出
+			id = rs.getLong(1); // 得到键值并输出
 		} catch (SQLException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e.getMessage());
@@ -173,9 +170,7 @@ public class JDBCUtil {
 		}
 		return id;
 	}
-	
-	
-	
+
 	// 如果有多个sql语句 update/delete /insert [需要考虑下事务]
 	public static void executeUpdate(String[] sql) {
 		try {
@@ -183,12 +178,12 @@ public class JDBCUtil {
 			// 1.获得连接
 			ct = getConnection();
 			// 传入的sql（可能是多个）
-			ct.setAutoCommit(false);  //设置sql语句不是自动提交
+			ct.setAutoCommit(false); // 设置sql语句不是自动提交
 			for (int i = 0; i < sql.length; i++) {
 				ps = ct.prepareStatement(sql[i]);
 				ps.executeUpdate();
 			}
-			ct.commit();  //手动提交
+			ct.commit(); // 手动提交
 		} catch (SQLException e) {
 			e.printStackTrace();
 			try {
@@ -216,15 +211,12 @@ public class JDBCUtil {
 			e.printStackTrace();
 			throw new RuntimeException(e.getMessage());
 		} finally {
-//			 close(rs, cs, ct);    //暂时不关闭，等到调用时获取到数据后再执行关闭方法
+			// close(rs, cs, ct); //暂时不关闭，等到调用时获取到数据后再执行关闭方法
 		}
 		return rs;
 
 	}
 
-
-
-	
 	// /**
 	// *
 	// * Description: 根据给定的uid查询数据库数据
@@ -246,17 +238,13 @@ public class JDBCUtil {
 	// // TODO Auto-generated catch block
 	// e.printStackTrace();
 	// }finally{
-	// SqlHelper.close(rs, SqlHelper.getPs(), SqlHelper.getConnection());  //关闭资源
+	// SqlHelper.close(rs, SqlHelper.getPs(), SqlHelper.getConnection()); //关闭资源
 	// }
 	// return user;
 	// }
-	
-	
-	
-	
-	
+
 	// TODO oracle的crud处理
-	
+
 	// 只有一个语句 update/delete /insert
 	// sql 格式：update 表名 set 字段名=？ where 字段=？
 	// parameters
@@ -291,7 +279,7 @@ public class JDBCUtil {
 			ct = getConnection();
 
 			// 传入的sql（可能是多个）
-			ct.setAutoCommit(false);  //设置sql语句不是自动提交
+			ct.setAutoCommit(false); // 设置sql语句不是自动提交
 			for (int i = 0; i < sql.length; i++) {
 				if (parameters[i] != null) {
 					ps = ct.prepareStatement(sql[i]);
@@ -301,7 +289,7 @@ public class JDBCUtil {
 					ps.executeUpdate();
 				}
 			}
-			ct.commit();  //手动提交
+			ct.commit(); // 手动提交
 		} catch (SQLException e) {
 			e.printStackTrace();
 			try {
@@ -316,7 +304,7 @@ public class JDBCUtil {
 			close(rs, ps, ct);
 		}
 	}
-	
+
 	// 统一的SELECT----oracle
 	// ResultSet->Array
 	public static ResultSet executeQueryOracle(String sql, String[] parameters) {
@@ -333,11 +321,11 @@ public class JDBCUtil {
 			e.printStackTrace();
 			throw new RuntimeException(e.getMessage());
 		} finally {
-			 close(rs,cs,ct);
+			close(rs, cs, ct);
 		}
 		return rs;
 	}
-	
+
 	// 调用存储过程，有返回Result参数的存储过程
 	// sql call 过程
 	public static CallableStatement callPro2(String sql, String[] inparameters,
@@ -368,14 +356,5 @@ public class JDBCUtil {
 		}
 		return cs;
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
 }

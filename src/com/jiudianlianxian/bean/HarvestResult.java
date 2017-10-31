@@ -6,7 +6,7 @@ import com.jiudianlianxian.data.HarvestResultData;
 /**
  * 
  * @Title: HarvestResult
- * @Description:  收获返回实体
+ * @Description: 收获返回实体
  * @Company: 济宁九点连线信息技术有限公司
  * @ProjectName: FarmJavaServer
  * @author fupengpeng
@@ -24,6 +24,5 @@ public class HarvestResult extends RequestResponseBase {
 	public void setHarvestResultData(HarvestResultData harvestResultData) {
 		this.harvestResultData = harvestResultData;
 	}
-	
-	
+
 }

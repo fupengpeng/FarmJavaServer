@@ -3,7 +3,6 @@ package com.jiudianlianxian.bean;
 import com.jiudianlianxian.base.RequestResponseBase;
 import com.jiudianlianxian.data.PlantResultData;
 
-
 /**
  * 
  * @Title: PlantResult
@@ -15,7 +14,7 @@ import com.jiudianlianxian.data.PlantResultData;
  *
  */
 public class PlantResult extends RequestResponseBase {
-	
+
 	private PlantResultData plantResultData = new PlantResultData();
 
 	public PlantResultData getPlantResultData() {
@@ -25,6 +24,5 @@ public class PlantResult extends RequestResponseBase {
 	public void setPlantResultData(PlantResultData plantResultData) {
 		this.plantResultData = plantResultData;
 	}
-	
 
 }

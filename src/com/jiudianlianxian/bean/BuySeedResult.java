@@ -3,11 +3,10 @@ package com.jiudianlianxian.bean;
 import com.jiudianlianxian.base.RequestResponseBase;
 import com.jiudianlianxian.data.BuySeedResultData;
 
-
 /**
  * 
  * @Title: BuySeedResult
- * @Description:  购买种子返回实体
+ * @Description: 购买种子返回实体
  * @Company: 济宁九点连线信息技术有限公司
  * @ProjectName: FarmJavaServer
  * @author fupengpeng
@@ -15,7 +14,7 @@ import com.jiudianlianxian.data.BuySeedResultData;
  *
  */
 public class BuySeedResult extends RequestResponseBase {
-	
+
 	private BuySeedResultData buySeedResultData = new BuySeedResultData();
 
 	public BuySeedResultData getBuySeedResultData() {
@@ -25,8 +24,5 @@ public class BuySeedResult extends RequestResponseBase {
 	public void setBuySeedResultData(BuySeedResultData buySeedResultData) {
 		this.buySeedResultData = buySeedResultData;
 	}
-
-	
-	
 
 }

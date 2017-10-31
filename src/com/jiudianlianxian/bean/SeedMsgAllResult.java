@@ -13,18 +13,17 @@ import com.jiudianlianxian.data.SeedMsgAllResultData;
  * @date 2017年9月27日 下午4:13:12
  *
  */
-public class SeedMsgAllResult extends RequestResponseBase{
-	
+public class SeedMsgAllResult extends RequestResponseBase {
+
 	private SeedMsgAllResultData seedMsgAllResultData = new SeedMsgAllResultData();
 
 	public SeedMsgAllResultData getSeedMsgAllResultData() {
 		return seedMsgAllResultData;
 	}
 
-	public void setSeedMsgAllResultData(SeedMsgAllResultData seedMsgAllResultData) {
+	public void setSeedMsgAllResultData(
+			SeedMsgAllResultData seedMsgAllResultData) {
 		this.seedMsgAllResultData = seedMsgAllResultData;
 	}
-	
-	
 
 }

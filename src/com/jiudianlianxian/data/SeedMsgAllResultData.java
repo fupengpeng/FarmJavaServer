@@ -16,7 +16,7 @@ import com.jiudianlianxian.domain.Seed;
  *
  */
 public class SeedMsgAllResultData {
-	
+
 	private List<Seed> seeds = new ArrayList<Seed>();
 
 	public List<Seed> getSeeds() {
@@ -26,10 +26,5 @@ public class SeedMsgAllResultData {
 	public void setSeeds(List<Seed> seeds) {
 		this.seeds = seeds;
 	}
-
-	
-	
-	
-	
 
 }

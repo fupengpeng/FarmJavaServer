@@ -5,12 +5,10 @@ import java.util.List;
 
 import com.jiudianlianxian.domain.Seed;
 
-
-
 /**
  * 
  * @Title: GetSeedMsgResultData
- * @Description:  获取用户种子信息返回实体数据
+ * @Description: 获取用户种子信息返回实体数据
  * @Company: 济宁九点连线信息技术有限公司
  * @ProjectName: FarmJavaServer
  * @author fupengpeng
@@ -18,7 +16,7 @@ import com.jiudianlianxian.domain.Seed;
  *
  */
 public class GetSeedMsgResultData {
-	
+
 	private List<Seed> seeds = new ArrayList<Seed>();
 
 	public List<Seed> getSeeds() {
@@ -28,5 +26,5 @@ public class GetSeedMsgResultData {
 	public void setSeeds(List<Seed> seeds) {
 		this.seeds = seeds;
 	}
-	
+
 }

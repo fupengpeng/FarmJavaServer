@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.jiudianlianxian.domain.Land;
 
-
 /**
  * 
  * @Title: GetLandMsgResultData
@@ -17,7 +16,7 @@ import com.jiudianlianxian.domain.Land;
  *
  */
 public class GetLandMsgResultData {
-	
+
 	private List<Land> lands = new ArrayList<Land>();
 
 	public List<Land> getLands() {
@@ -27,6 +26,5 @@ public class GetLandMsgResultData {
 	public void setLands(List<Land> lands) {
 		this.lands = lands;
 	}
-	
 
 }

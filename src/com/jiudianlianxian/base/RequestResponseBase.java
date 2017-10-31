@@ -1,6 +1,5 @@
 package com.jiudianlianxian.base;
 
-
 /**
  * 
  * @Title: RequestResponseBase
@@ -12,18 +11,16 @@ package com.jiudianlianxian.base;
  *
  */
 public class RequestResponseBase {
-	
+
 	/**
 	 * 请求响应信息头
 	 */
 	private String info;
-	
+
 	/**
 	 * 请求是否成功
 	 */
 	private String code;
-	
-	
 
 	public String getCode() {
 		return code;
@@ -40,6 +37,5 @@ public class RequestResponseBase {
 	public void setInfo(String info) {
 		this.info = info;
 	}
-	
 
 }

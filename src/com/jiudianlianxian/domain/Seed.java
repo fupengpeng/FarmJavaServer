@@ -3,7 +3,6 @@ package com.jiudianlianxian.domain;
 import java.util.HashSet;
 import java.util.Set;
 
-
 /**
  * 
  * @Title: Seed
@@ -15,42 +14,39 @@ import java.util.Set;
  *
  */
 public class Seed {
-	//种子id， 主键
+	// 种子id， 主键
 	private Long seedId;
-	//种子名称
+	// 种子名称
 	private String seedName;
 	/**
-	 * 种子状态
-	 *     1：商店
-	 *     2：用户背包
-	 *     3：种植在土地
+	 * 种子状态 1：商店 2：用户背包 3：种植在土地
 	 */
 	private String seedState;
-	//种子生长时长
+	// 种子生长时长
 	private Long seedGrowthTime;
-	
-	//种子购买价格
+
+	// 种子购买价格
 	private Long seedBuyPrice;
-	//种子出售价格
+	// 种子出售价格
 	private Long seedSellingPrice;
-	//种子长成获取经验
+	// 种子长成获取经验
 	private Long seedExperience;
-	//种子产量
+	// 种子产量
 	private Long seedYield;
-	//种子长成果实售价
+	// 种子长成果实售价
 	private Long seedFruitSellingPrice;
-	//种子类型  共生产几季
+	// 种子类型 共生产几季
 	private Long seedType;
-	//种子图片
+	// 种子图片
 	private String seedImage;
 	// 种子数量，如果在商店，则为0
 	private int seedNumber;
 
-	//种植种植时间，当种子状态为3时才有值
+	// 种植种植时间，当种子状态为3时才有值
 	private Long seedPlantTime;
-	
-	private User seedUser ;
-	
+
+	private User seedUser;
+
 	private Set<Land> seedLands = new HashSet<Land>();
 
 	public Long getSeedPlantTime() {
@@ -172,11 +168,5 @@ public class Seed {
 	public void setSeedLands(Set<Land> seedLands) {
 		this.seedLands = seedLands;
 	}
-	
-	
-	
-
-	
-	
 
 }

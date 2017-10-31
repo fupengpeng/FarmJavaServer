@@ -3,7 +3,6 @@ package com.jiudianlianxian.bean;
 import com.jiudianlianxian.base.RequestResponseBase;
 import com.jiudianlianxian.data.SellFruitResultData;
 
-
 /**
  * 
  * @Title: SellFruitResult
@@ -15,7 +14,7 @@ import com.jiudianlianxian.data.SellFruitResultData;
  *
  */
 public class SellFruitResult extends RequestResponseBase {
-	
+
 	private SellFruitResultData sellFruitResultData;
 
 	public SellFruitResultData getSellFruitResultData() {
@@ -25,6 +24,5 @@ public class SellFruitResult extends RequestResponseBase {
 	public void setSellFruitResultData(SellFruitResultData sellFruitResultData) {
 		this.sellFruitResultData = sellFruitResultData;
 	}
-	
 
 }

@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.jiudianlianxian.domain.Fruit;
 
-
 /**
  * 
  * @Title: OpenWarehouseResultData
@@ -17,7 +16,7 @@ import com.jiudianlianxian.domain.Fruit;
  *
  */
 public class OpenWarehouseResultData {
-	
+
 	List<Fruit> fruits = new ArrayList<Fruit>();
 
 	public List<Fruit> getFruits() {
@@ -27,6 +26,5 @@ public class OpenWarehouseResultData {
 	public void setFruits(List<Fruit> fruits) {
 		this.fruits = fruits;
 	}
-	
-	
+
 }
