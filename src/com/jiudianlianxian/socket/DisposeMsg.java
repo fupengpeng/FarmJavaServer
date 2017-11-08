@@ -80,13 +80,14 @@ public class DisposeMsg implements Observer {
 		final User user = new User();
 		Long userId = null;
 		Long seedId = null;
-		
 		Long fruitId = null;
 		Long fruitNumber = null;
 		Long landId = null;
 		String jsonObject = null;
-		
 		String msg = null;
+		
+		
+		//获取到消息队列的消息
 		try {
 			msg = requestMsgQueue.take();
 		} catch (InterruptedException e) {
@@ -94,12 +95,16 @@ public class DisposeMsg implements Observer {
 		}
 		System.out.println("msg ==== " + msg);
 		// && (msg.indexOf("a")) != -1  测试是否是一条完整的信息
+		//消息不为空，则进行截取
 		if (msg != null && (msg.indexOf("@jdlx")) != -1 ) {
 			String[] msgs = msg.split("@jdlx", 2); // 参数1是分割符号，即根据什么分割，也可以使用正则表达式，参数2指定分割成几个字符串
 			System.out.println("msgs ----------- " + msgs[0]);
 			try {
+				//获取到截取之后的消息，解析得到请求的内容
 				JSONObject json = new JSONObject(msgs[0]);
 				final String info = json.getString("info");
+				
+				//根据内容匹配是什么请求，进行处理
 				switch (info) {
 				case "login":
 					// 如果是登录请求，则获取到登录的用户名和密码，进行数据库查询数据，是否用户名和密码争取，如果正确，则返回个用户登录成功的提示
@@ -324,7 +329,6 @@ public class DisposeMsg implements Observer {
 				case "shop":
 					// 获取所有种子信息----商店
 					// 查询数据库种子列表所有数据
-					System.out.println("sssssssssssssssssssssssssssss");
 					SeedMsgAllResultData seedMsgAllResultData = jdbcService
 							.getSeedMsgAll();
 					SeedMsgAllResult seedMsgAllResult = new SeedMsgAllResult();
@@ -676,6 +680,7 @@ public class DisposeMsg implements Observer {
 	 */
 	private void pushMsg(String msg ,BlockingQueue<String> sendMsgQueue ) {
 		try {
+			System.out.println("添加消息到消息队列");
 			sendMsgQueue.put(msg);
 		} catch (InterruptedException e) {
 			e.printStackTrace();

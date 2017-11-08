@@ -3,6 +3,7 @@ package com.jiudianlianxian.socket;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Observable;
 import java.util.concurrent.BlockingQueue;
 
@@ -27,10 +28,14 @@ public class RequestMsg extends Observable {
 			int len;
 			// 读取完流中所有的消息且消息中含有“@jdlx”时保存至消息队列，
 			while ((len = is.read(byteBuff)) != -1) {
-				System.out.println("------------- " + new String(Arrays.copyOf(byteBuff, len)));
+				
+				Date date = new Date();
+				System.out.println(new String(Arrays.copyOf(byteBuff, len)) + "----请求时间：" + date.getHours()
+						+ " 时   " + date.getMinutes() + " 分    "
+						+ date.getSeconds() + " 秒       "
+						+ date.getTime());
 				requestMsgQueue
 						.put(new String(Arrays.copyOf(byteBuff, len)));
-				System.out.println("ssssssssssssssssss");
 				break;
 			}
 		} catch (IOException e) {

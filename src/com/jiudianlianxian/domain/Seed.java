@@ -48,6 +48,7 @@ public class Seed {
 	private User seedUser;
 
 	private Set<Land> seedLands = new HashSet<Land>();
+	
 
 	public Long getSeedPlantTime() {
 		return seedPlantTime;
